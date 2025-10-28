@@ -90,10 +90,4 @@ class Config:
             "note": "Most advanced stage. High risk of severe vision loss. Immediate intervention is mandatory."
         }
     }
-    
-        0: "None",
-        1: "Mild",
-        2: "Moderate",
-        3: "Severe",
-        4: "Proliferative"
-    }
+

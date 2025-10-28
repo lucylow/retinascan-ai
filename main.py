@@ -13,8 +13,8 @@ from datetime import datetime
 from config import Config
 from utils.image_processor import ImageProcessor
 from utils.model_manager import model_manager
-from .services.prediction_service import PredictionService # Import the class
-from fastapi.concurrency import run_in_threadpool # For running CPU-bound tasks
+from services.prediction_service import PredictionService
+from fastapi.concurrency import run_in_threadpool
 
 # Configure logging
 logging.basicConfig(

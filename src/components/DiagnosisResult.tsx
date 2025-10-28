@@ -10,6 +10,12 @@ interface DiagnosisResultProps {
     confidence: number;
     label: string;
     recommendation: string;
+    structured_recommendation?: {
+      action: string;
+      urgency: string;
+      follow_up_time: string;
+      note: string;
+    };
     class_probabilities: Record<string, number>;
   };
 }
@@ -53,9 +59,29 @@ export function DiagnosisResult({ prediction }: DiagnosisResultProps) {
           <Progress value={prediction.confidence * 100} className="h-2" />
         </div>
 
-        <div className="bg-muted/50 p-4 rounded-lg">
+        <div className="bg-muted/50 p-4 rounded-lg space-y-3">
           <h4 className="font-semibold mb-2">Recommendation</h4>
           <p className="text-sm text-muted-foreground">{prediction.recommendation}</p>
+          
+          {prediction.structured_recommendation && (
+            <div className="mt-3 pt-3 border-t border-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Action:</span>
+                <span className="text-xs">{prediction.structured_recommendation.action}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Urgency:</span>
+                <Badge variant="outline" className="text-xs">{prediction.structured_recommendation.urgency}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Follow-up:</span>
+                <span className="text-xs">{prediction.structured_recommendation.follow_up_time}</span>
+              </div>
+              <div className="text-xs italic text-muted-foreground mt-2">
+                {prediction.structured_recommendation.note}
+              </div>
+            </div>
+          )}
         </div>
 
         <div>

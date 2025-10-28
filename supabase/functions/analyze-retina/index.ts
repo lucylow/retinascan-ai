@@ -20,6 +20,9 @@ serve(async (req) => {
       );
     }
 
+    // Handle data URL format (data:image/jpeg;base64,...) or pure base64
+    const imageUrl = image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY not configured");
@@ -70,7 +73,7 @@ Respond ONLY with a JSON object in this exact format:
               {
                 type: "image_url",
                 image_url: {
-                  url: image
+                  url: imageUrl
                 }
               }
             ]
@@ -112,8 +115,54 @@ Respond ONLY with a JSON object in this exact format:
 
     const diagnosis = JSON.parse(jsonMatch[0]);
 
+    // Map severity_level to structured_recommendation based on severity class
+    const severityLevels = ["None", "Mild", "Moderate", "Severe", "Proliferative"];
+    const severityClass = diagnosis.severity_class || 0;
+    const severityName = severityLevels[severityClass] || "None";
+
+    const structuredRecommendations: Record<string, any> = {
+      "None": {
+        action: "Routine annual eye exam.",
+        urgency: "Low",
+        follow_up_time: "12 months",
+        note: "No signs of Diabetic Retinopathy detected. Maintain good diabetes control."
+      },
+      "Mild": {
+        action: "Consult with an ophthalmologist for monitoring.",
+        urgency: "Medium",
+        follow_up_time: "6-12 months",
+        note: "Early signs detected. Strict blood sugar and blood pressure control is crucial."
+      },
+      "Moderate": {
+        action: "Immediate referral to a retinal specialist.",
+        urgency: "High",
+        follow_up_time: "3-6 months",
+        note: "Significant changes observed. Specialist consultation is required to discuss treatment options."
+      },
+      "Severe": {
+        action: "Urgent referral to a retinal specialist for potential intervention (e.g., laser treatment or injections).",
+        urgency: "Critical",
+        follow_up_time: "Within 1 month",
+        note: "Advanced stage of the disease. Immediate specialist care is necessary to prevent vision loss."
+      },
+      "Proliferative": {
+        action: "Emergency consultation with a retinal specialist.",
+        urgency: "Emergency",
+        follow_up_time: "Within 1 week",
+        note: "Most advanced stage. High risk of severe vision loss. Immediate intervention is mandatory."
+      }
+    };
+
+    const structuredRecommendation = structuredRecommendations[severityName] || structuredRecommendations["None"];
+
+    // Enhance response with structured recommendation
+    const enhancedDiagnosis = {
+      ...diagnosis,
+      structured_recommendation: structuredRecommendation
+    };
+
     return new Response(
-      JSON.stringify(diagnosis),
+      JSON.stringify(enhancedDiagnosis),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
