@@ -53,7 +53,15 @@ export function ImageUpload({ onPrediction, isAnalyzing, setIsAnalyzing }: Image
         body: { image: selectedImage },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw new Error(error.message || "Analysis failed");
+      }
+      
+      // Validate response data
+      if (!data || typeof data.severity_class === 'undefined') {
+        throw new Error("Invalid response from analysis service");
+      }
       
       onPrediction(data);
       toast({
@@ -64,7 +72,7 @@ export function ImageUpload({ onPrediction, isAnalyzing, setIsAnalyzing }: Image
       console.error("Analysis error:", error);
       toast({
         title: "Analysis failed",
-        description: error.message || "Failed to analyze image",
+        description: error.message || "Failed to analyze image. Please check your configuration.",
         variant: "destructive",
       });
     } finally {
