@@ -1,0 +1,49 @@
+{
+  "name": "retinascan-ai-client",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A modern, lovable-compatible frontend for the RetinaScan AI API.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "keywords": [
+    "lovable",
+    "react",
+    "diabetic-retinopathy",
+    "ai",
+    "healthcare"
+  ],
+  "author": "The RetinaScan Project Team",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "axios": "^1.6.8"
+  },
+  "devDependencies": {
+    "web-vitals": "^2.1.4"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

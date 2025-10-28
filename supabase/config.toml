@@ -1,0 +1,16 @@
+project_id = "wlvuswftjdpnqlyrzquz"
+
+[functions.analyze-retina]
+verify_jwt = false
+
+[functions.parse-invoice]
+verify_jwt = true
+
+[functions.get-invoice]
+verify_jwt = true
+
+[functions.create-deal]
+verify_jwt = true
+
+[functions.tx-webhook]
+verify_jwt = false
