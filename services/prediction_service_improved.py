@@ -16,9 +16,9 @@ import cv2
 
 from fastapi import HTTPException
 
-from ..config import Config
-from ..utils.image_processor_improved import ImageProcessor
-from ..utils.model_manager_improved import model_manager
+from config import Config
+from utils.image_processor_improved import ImageProcessor
+from utils.model_manager_improved import model_manager
 
 logger = logging.getLogger(__name__)
 

@@ -7,9 +7,9 @@ from typing import Dict, Any, Tuple
 
 from fastapi import HTTPException
 
-from ..config import Config
-from ..utils.image_processor import ImageProcessor
-from ..utils.model_manager import model_manager
+from config import Config
+from utils.image_processor import ImageProcessor
+from utils.model_manager import model_manager
 
 logger = logging.getLogger(__name__)
 
