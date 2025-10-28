@@ -105,11 +105,13 @@
 - .env.example - Environment variables template
 
 #### Frontend
-- retinascan-frontend/ - React frontend
-  - src/App.js
-  - src/App.css
-  - src/index.js
-  - package.json
+- src/ - React + TypeScript frontend (Lovable-compatible)
+  - main.tsx - Entry point
+  - App.tsx - Root component
+  - components/ - UI components
+  - pages/ - Page components
+  - lib/ - Utilities and config
+  - integrations/ - Supabase integration
 
 #### Models
 - models/README.md - Model directory info

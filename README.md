@@ -130,7 +130,7 @@ docker run -p 8000:8000 retinascan-backend
 
 ```
 retinascan-ai/
-├── src/                          # Frontend source
+├── src/                          # Frontend source (Lovable workspace)
 │   ├── components/               # React components
 │   │   ├── ImageUpload.tsx      # Image upload interface
 │   │   ├── DiagnosisResult.tsx  # Results display
@@ -143,7 +143,8 @@ retinascan-ai/
 │   ├── integrations/            # Third-party integrations
 │   │   └── supabase/           # Supabase client
 │   ├── App.tsx                  # Root component
-│   └── main.tsx                 # Entry point
+│   ├── main.tsx                 # Entry point
+│   └── README.md                # Frontend documentation
 │
 ├── supabase/                     # Supabase configuration
 │   └── functions/
@@ -172,6 +173,8 @@ retinascan-ai/
 ├── tailwind.config.ts            # Tailwind CSS configuration
 └── tsconfig.json                 # TypeScript configuration
 ```
+
+> 📖 **For detailed file navigation and Lovable setup, see [LOVABLE_FILE_STRUCTURE.md](LOVABLE_FILE_STRUCTURE.md)**
 
 ## 🧪 Usage
 
@@ -523,6 +526,8 @@ npm run build
 - [Architecture Details](ARCHITECTURE.md) - Deep dive into system design
 - [Deployment Guide](DEPLOYMENT_GUIDE.md) - Production deployment instructions
 - [Integration Guide](INTEGRATION_GUIDE.md) - Frontend-backend integration
+- [Lovable File Structure](LOVABLE_FILE_STRUCTURE.md) - File organization for Lovable development
+- [Lovable Setup Guide](LOVABLE_SETUP.md) - Lovable-specific setup instructions
 
 ## 🤝 Contributing
 

@@ -98,9 +98,13 @@ npm run preview
 
 ## Architecture Notes
 
-This project has **two frontend setups**:
-- **Root `src/`**: Vite + React + TypeScript (the active one)
-- **`retinascan-frontend/`**: Create React App (not currently used)
+This project uses **Vite + React + TypeScript** in the `src/` directory:
 
-Ensure Lovable is configured for the root Vite setup, not the `retinascan-frontend` folder.
+- **`src/`**: Main frontend source (Lovable-compatible)
+  - React 18 + TypeScript
+  - Vite build tool
+  - Tailwind CSS + shadcn/ui
+  - Supabase integration
+
+Ensure Lovable is configured for the root Vite setup.
 
