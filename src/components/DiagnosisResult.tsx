@@ -2,9 +2,14 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, CheckCircle, AlertTriangle } from "lucide-react";
+import { AIExplainability } from "./AIExplainability";
+import { PredictionResponse } from "@/lib/validation";
+import { useState } from "react";
+import { Button } from "./ui/button";
+import { ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 
 interface DiagnosisResultProps {
-  prediction: {
+  prediction: PredictionResponse & {
     severity_class: number;
     severity_level: string;
     confidence: number;
@@ -18,6 +23,7 @@ interface DiagnosisResultProps {
     };
     class_probabilities: Record<string, number>;
   };
+  imageSrc?: string;
 }
 
 export function DiagnosisResult({ prediction }: DiagnosisResultProps) {
