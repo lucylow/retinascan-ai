@@ -1,1 +1,4 @@
 project_id = "yxaigqdxowetapqowpox"
+
+[functions.analyze-retina]
+verify_jwt = false
