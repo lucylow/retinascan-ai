@@ -52,6 +52,20 @@ else:
 app.add_middleware(CORSMiddleware, **cors_kwargs)
 
 
+# Simple request logging to help diagnose CORS and connectivity issues
+@app.middleware("http")
+async def log_requests(request, call_next):
+    try:
+        origin = request.headers.get("origin")
+        path = request.url.path
+        logger.info(f"Request path={path} origin={origin}")
+    except Exception:
+        # Avoid blocking if headers parsing fails
+        pass
+    response = await call_next(request)
+    return response
+
+
 # Response models
 class HealthResponse(BaseModel):
     """Health check response model"""
@@ -194,6 +208,15 @@ async def predict_retinopathy(file: UploadFile = File(...)):
 async def get_model_info():
     """Get detailed model information"""
     return model_manager.get_model_info()
+
+
+@app.get("/debug/cors")
+async def debug_cors():
+    """Expose current CORS configuration for debugging purposes."""
+    return {
+        "allow_origins": Config.CORS_ORIGINS,
+        "allow_origin_regex": getattr(Config, "CORS_ORIGIN_REGEX", ""),
+    }
 
 
 # Error handlers
