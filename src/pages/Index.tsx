@@ -5,6 +5,7 @@ import { AIChatAssistant } from "@/components/AIChatAssistant";
 import { FeatureCard } from "@/components/FeatureCard";
 import { StatCard } from "@/components/StatCard";
 import { ConfigWarning } from "@/components/ConfigWarning";
+import { BackendHealthCheck } from "@/components/BackendHealthCheck";
 import { Button } from "@/components/ui/button";
 import {
   Eye,
@@ -170,6 +171,9 @@ export default function Index() {
       {/* Main Upload Section */}
       <section ref={uploadSectionRef} className="container mx-auto px-4 py-24 scroll-mt-20">
         <ConfigWarning />
+        <div className="max-w-4xl mx-auto mb-8">
+          <BackendHealthCheck />
+        </div>
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Analyze Your <span className="text-primary">Retinal Image</span>

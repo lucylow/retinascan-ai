@@ -20,6 +20,24 @@ Set these in your Lovable project settings:
    - Your Lovable API key for accessing the AI Gateway
    - Get it from your Lovable dashboard
 
+### Backend API Configuration (Optional - for Direct Backend Integration)
+
+If you want to connect directly to a deployed Python FastAPI backend instead of using Supabase Edge Functions:
+
+1. **VITE_BACKEND_API_URL** (in Lovable frontend)
+   - The public URL of your deployed FastAPI backend
+   - Example: `https://your-retinascan-api.herokuapp.com` or `https://your-api.render.com`
+   - Default: `http://localhost:8000` (for local development)
+   - Set this in Lovable → Settings → Environment Variables
+
+2. **CORS_ORIGINS** (in Backend environment variables)
+   - Comma-separated list of allowed frontend origins
+   - Must include your Lovable.dev deployment domain
+   - Example: `http://localhost:3000,http://localhost:5173,https://your-app.lovable.dev`
+   - Set this in your backend hosting platform (Heroku, Render, etc.) environment variables
+
+**Important**: The frontend will automatically try the backend API first, and fall back to Supabase Edge Functions if the backend is not available or returns an error.
+
 ### Supabase Configuration
 
 Set these in your Supabase project settings (under Project Settings → API):
@@ -42,11 +60,22 @@ Set these in your Supabase project settings (under Project Settings → API):
 1. Create a `.env` file in the project root:
 
 ```env
+# Supabase Configuration
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key-here
+
+# Backend API Configuration (Optional)
+VITE_BACKEND_API_URL=http://localhost:8000
 ```
 
-2. For Supabase Edge Functions, set secrets locally:
+2. For backend CORS configuration, create a `.env` file in your backend directory:
+
+```env
+# Backend CORS - Add your Lovable.dev domain here
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:8080,https://your-app.lovable.dev
+```
+
+3. For Supabase Edge Functions, set secrets locally:
 
 ```bash
 supabase secrets set LOVABLE_API_KEY=your-lovable-api-key
@@ -72,10 +101,22 @@ The Edge Function (`supabase/functions/analyze-retina/index.ts`) uses:
 After deployment:
 
 1. Upload a retinal fundus image
-2. Click "Analyze Image"
-3. The image is sent to Supabase Edge Function
-4. Edge Function calls Lovable AI Gateway for analysis
+2. Use the "Check API Health" button (visible on the main page) to verify backend connectivity
+3. Click "Analyze Image"
+4. The image is sent to:
+   - **Backend API** (if `VITE_BACKEND_API_URL` is configured and accessible), OR
+   - **Supabase Edge Function** (fallback, which calls Lovable AI Gateway)
 5. Results are displayed with severity classification and recommendations
+
+### Backend Health Check
+
+The frontend includes a health check component that:
+- Tests connectivity to your backend API
+- Verifies CORS configuration
+- Shows backend status and model information
+- Provides troubleshooting tips if connection fails
+
+If you see CORS errors, make sure your backend's `CORS_ORIGINS` environment variable includes your Lovable.dev deployment domain.
 
 ## Troubleshooting
 
@@ -91,6 +132,24 @@ After deployment:
 - Open browser console to see error messages
 - Check Supabase Edge Function logs in dashboard
 - Verify image format is supported (PNG, JPG, JPEG)
+
+### Backend CORS Error
+- Error message: "CORS Error" or "Failed to fetch"
+- **Solution**: 
+  1. Get your exact Lovable.dev deployment URL (e.g., `https://your-app.lovable.dev`)
+  2. Add it to your backend's `CORS_ORIGINS` environment variable
+  3. Example: `CORS_ORIGINS=http://localhost:3000,https://your-app.lovable.dev`
+  4. Restart your backend server
+  5. Test again using the "Check API Health" button
+
+### Backend API Not Accessible
+- Error message: "Network Error" or "Backend health check failed"
+- **Solution**:
+  1. Verify your backend is deployed and running
+  2. Check that `VITE_BACKEND_API_URL` in Lovable matches your backend's public URL
+  3. Ensure your backend URL includes the protocol (`https://`) and doesn't have a trailing slash
+  4. Test the backend URL directly in a browser: `https://your-backend-url.com/health`
+  5. If backend is not available, the app will automatically fall back to Supabase Edge Functions
 
 ## API Response Format
 
