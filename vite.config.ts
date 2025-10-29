@@ -6,17 +6,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    hmr: {
-      overlay: true,
-      protocol: 'ws',
-    },
   },
   plugins: [
     react(),
   ].filter(Boolean),
-  esbuild: {
-    logOverride: { 'this-is-undefined-in-esm': 'silent' },
-  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
