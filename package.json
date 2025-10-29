@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "build:unified": "tsc && vite build",
+    "build": "vite build",
+    "build:unified": "vite build",
     "build:dev": "vite build --mode development",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
     "@radix-ui/react-progress": "^1.1.7",
