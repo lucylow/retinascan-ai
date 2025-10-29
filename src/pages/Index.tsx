@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { DiagnosisResult } from "@/components/DiagnosisResult";
-import { ConfigWarning } from "@/components/ConfigWarning";
 import { Eye } from "lucide-react";
 
 export default function Index() {
@@ -11,7 +10,6 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <ConfigWarning />
         <header className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Eye className="w-12 h-12 text-primary" />
