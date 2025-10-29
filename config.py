@@ -30,7 +30,7 @@ class Config:
     NUM_CLASSES = 5
     
     # CORS configuration
-    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
+    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173,http://localhost:8080").split(",")
     
     # Diagnosis labels and recommendations
     DIAGNOSIS_LABELS = {

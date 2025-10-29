@@ -99,7 +99,6 @@ export const useForm = (initialValues: Record<string, any> = {}) => {
   }, [setError]);
 
   const validateForm = useCallback(() => {
-    const errors: Record<string, string> = {};
     let isValid = true;
 
     Object.keys(formState.values).forEach(key => {

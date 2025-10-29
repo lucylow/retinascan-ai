@@ -46,7 +46,9 @@ export const AIExplainability: React.FC<AIExplainabilityProps> = ({
             content="AI confidence measures how certain the model is about its prediction. Lower confidence may indicate the need for additional review."
             icon="info"
             ariaLabel="Confidence explanation"
-          />
+          >
+            <span />
+          </Tooltip>
         </div>
 
         {/* Confidence Score */}
@@ -75,7 +77,9 @@ export const AIExplainability: React.FC<AIExplainabilityProps> = ({
                   content="Uncertainty indicates areas where the AI model is less certain. Higher uncertainty may suggest the need for clinical review."
                   icon="info"
                   ariaLabel="Uncertainty explanation"
-                />
+                >
+                  <span />
+                </Tooltip>
               </span>
               <span className={`text-sm font-medium ${uncertainty > 0.3 ? 'text-orange-600' : 'text-gray-600'}`}>
                 {(uncertainty * 100).toFixed(1)}%

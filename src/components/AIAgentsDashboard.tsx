@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { aiAgentService, AgentStatus, WorkflowStatus, SystemMetrics } from '../services/aiAgentService';
 import { AgentCard } from './ai-agents/AgentCard';
 import { ImageUploadArea } from './ai-agents/ImageUploadArea';

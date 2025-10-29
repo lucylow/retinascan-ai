@@ -71,7 +71,7 @@ export const AuditLogSchema = z.object({
   action: z.string(),
   resource: z.string(),
   timestamp: z.number(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   ipAddress: z.string().optional(),
   userAgent: z.string().optional(),
 });

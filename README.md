@@ -453,6 +453,9 @@ MAX_UPLOAD_SIZE=16777216  # 16MB
 # Supabase (for Edge Functions)
 SUPABASE_URL=your_supabase_url
 LOVABLE_API_KEY=your_lovable_api_key
+
+# Frontend Backend API (optional - for direct backend connection)
+VITE_BACKEND_API_URL=http://localhost:8000
 ```
 
 ## 🔧 Configuration

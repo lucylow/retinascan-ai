@@ -22,6 +22,7 @@ import {
 export default function Index() {
   const [prediction, setPrediction] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [uploadedImageSrc, setUploadedImageSrc] = useState<string | null>(null);
   const uploadSectionRef = useRef<HTMLDivElement>(null);
 
   const scrollToUpload = () => {
@@ -182,9 +183,10 @@ export default function Index() {
             onPrediction={setPrediction}
             isAnalyzing={isAnalyzing}
             setIsAnalyzing={setIsAnalyzing}
+            onImageSelect={setUploadedImageSrc}
           />
           {prediction ? (
-            <DiagnosisResult prediction={prediction} />
+            <DiagnosisResult prediction={prediction} imageSrc={uploadedImageSrc || undefined} />
           ) : (
             <div className="flex items-center justify-center min-h-[400px] rounded-lg border-2 border-dashed border-muted">
               <div className="text-center space-y-4 p-8">

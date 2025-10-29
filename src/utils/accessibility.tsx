@@ -2,6 +2,8 @@
  * Accessibility utilities for WCAG 2.1 AA compliance
  */
 
+import React from 'react';
+
 // ARIA helpers
 export const ARIA = {
   // Generate ARIA labels for interactive elements
@@ -19,7 +21,7 @@ export const ARIA = {
   },
 
   // Screen reader only text
-  srOnly: (text: string) => (
+  srOnly: (text: string): React.ReactElement => (
     <span className="sr-only">{text}</span>
   ),
 };

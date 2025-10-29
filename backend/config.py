@@ -19,7 +19,7 @@ class Config:
     IMAGE_SIZE = (224, 224)
     
     # CORS Configuration
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5173,http://localhost:8080').split(',')
     
     # Diagnosis Configuration
     DIAGNOSIS_LABELS = {

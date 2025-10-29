@@ -56,7 +56,7 @@ const plans: PricingPlan[] = [
 
 export const Pricing: React.FC = () => {
   const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
-  const [selectedPlan, setSelectedPlan] = useState<string>('professional');
+  const [, setSelectedPlan] = useState<string>('professional');
 
   const getPrice = (price: number) => {
     return billingPeriod === 'year' ? price * 10 : price;

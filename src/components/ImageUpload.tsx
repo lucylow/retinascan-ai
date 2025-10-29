@@ -4,14 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { backendApi } from "@/services/backendApi";
 
 interface ImageUploadProps {
   onPrediction: (prediction: any) => void;
   isAnalyzing: boolean;
   setIsAnalyzing: (analyzing: boolean) => void;
+  onImageSelect?: (imageSrc: string | null) => void;
 }
 
-export function ImageUpload({ onPrediction, isAnalyzing, setIsAnalyzing }: ImageUploadProps) {
+export function ImageUpload({ onPrediction, isAnalyzing, setIsAnalyzing, onImageSelect }: ImageUploadProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
@@ -40,15 +42,46 @@ export function ImageUpload({ onPrediction, isAnalyzing, setIsAnalyzing }: Image
 
     setSelectedFile(file);
     const reader = new FileReader();
-    reader.onload = (e) => setSelectedImage(e.target?.result as string);
+    reader.onload = (e) => {
+      const imageSrc = e.target?.result as string;
+      setSelectedImage(imageSrc);
+      onImageSelect?.(imageSrc);
+    };
     reader.readAsDataURL(file);
-  }, [toast]);
+  }, [toast, onImageSelect]);
 
-  const analyzeImage = async () => {
+  const analyzeImage = useCallback(async () => {
     if (!selectedFile || !selectedImage) return;
 
     setIsAnalyzing(true);
     try {
+      // Try direct backend API first
+      try {
+        const backendAvailable = await backendApi.isBackendAvailable();
+        if (backendAvailable) {
+          console.log("Using direct backend API");
+          const data = await backendApi.predictImage(selectedFile);
+          
+          // Transform backend response to match expected format
+          const prediction = {
+            ...data,
+            diagnosis: data.label,
+          };
+          
+          onPrediction(prediction);
+          toast({
+            title: "Analysis complete",
+            description: "Your retinal image has been analyzed",
+          });
+          return;
+        }
+      } catch (backendError: any) {
+        console.warn("Backend API not available, trying Supabase:", backendError.message);
+        // Fall through to Supabase Edge Function
+      }
+
+      // Fallback to Supabase Edge Function
+      console.log("Using Supabase Edge Function");
       const { data, error } = await supabase.functions.invoke("analyze-retina", {
         body: { image: selectedImage },
       });
@@ -72,13 +105,13 @@ export function ImageUpload({ onPrediction, isAnalyzing, setIsAnalyzing }: Image
       console.error("Analysis error:", error);
       toast({
         title: "Analysis failed",
-        description: error.message || "Failed to analyze image. Please check your configuration.",
+        description: error.message || "Failed to analyze image. Please ensure the backend is running and check your configuration.",
         variant: "destructive",
       });
     } finally {
       setIsAnalyzing(false);
     }
-  };
+  }, [selectedFile, selectedImage, onPrediction, toast, setIsAnalyzing]);
 
   return (
     <Card className="p-6">
