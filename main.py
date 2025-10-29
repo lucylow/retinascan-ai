@@ -31,13 +31,25 @@ app = FastAPI(
 )
 
 # Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=Config.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+cors_kwargs = {
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+
+# Prefer regex if provided (supports wildcard domains like *.lovable.dev)
+if getattr(Config, "CORS_ORIGIN_REGEX", ""):
+    cors_kwargs["allow_origin_regex"] = Config.CORS_ORIGIN_REGEX
+    cors_kwargs["allow_origins"] = []
+else:
+    # If '*' explicitly included, use regex to remain compatible with credentials
+    if "*" in Config.CORS_ORIGINS:
+        cors_kwargs["allow_origin_regex"] = ".*"
+        cors_kwargs["allow_origins"] = []
+    else:
+        cors_kwargs["allow_origins"] = Config.CORS_ORIGINS
+
+app.add_middleware(CORSMiddleware, **cors_kwargs)
 
 
 # Response models
