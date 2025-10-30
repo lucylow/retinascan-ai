@@ -6,6 +6,7 @@ import { useRole } from '../../contexts/RoleContext';
 import { RoleSwitcher } from '../Common/RoleSwitcher';
 
 // Placeholder stubs for PatientInfo and Analysis components
+import { ScanUpload } from '../Scan/ScanUpload';
 import { AnalysisResults } from '../Results/AnalysisResults';
 
 export const Dashboard: React.FC = () => {
@@ -130,9 +131,7 @@ export const Dashboard: React.FC = () => {
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             {activeTab === 'scan' && (
-              <div className="p-8 text-center text-gray-700">
-                Use the header’s "Start Retina Scan" to upload retina images.
-              </div>
+              <ScanUpload patient={currentPatient} onScanUpload={handleScanUpload} />
             )}
             {activeTab === 'results' && (
               <AnalysisResults

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AgentCard } from './AgentCard';
+import { ImageUploadArea } from './ImageUploadArea';
 import { WorkflowList } from './WorkflowList';
 import { WorkflowResults } from './WorkflowResults';
 import { SystemMetrics } from './SystemMetrics';
@@ -170,9 +171,7 @@ export const AIAgentsDashboard: React.FC = () => {
 
         <div className="workflow-panel">
           <h2>Image Processing</h2>
-          <div className="p-4 border rounded-md bg-white text-center text-gray-700">
-            Use the header’s "Start Retina Scan" to upload retina images.
-          </div>
+          <ImageUploadArea onUpload={handleImageUpload} isProcessing={isProcessing} />
           <WorkflowList
             workflows={workflows}
             selectedWorkflow={selectedWorkflow}
