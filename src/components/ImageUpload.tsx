@@ -3,7 +3,7 @@ import { Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { config } from "@/lib/config";
 
 interface ImageUploadProps {
   onPrediction: (prediction: any) => void;
@@ -49,20 +49,27 @@ export function ImageUpload({ onPrediction, isAnalyzing, setIsAnalyzing }: Image
 
     setIsAnalyzing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-retina", {
-        body: { image: selectedImage },
+      // Prefer backend API when available
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+
+      const response = await fetch(`${config.api.baseUrl}/api/predict`, {
+        method: "POST",
+        body: formData,
       });
 
-      if (error) {
-        console.error("Supabase function error:", error);
-        throw new Error(error.message || "Analysis failed");
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        const message = errJson?.error || `Request failed with ${response.status}`;
+        throw new Error(message);
       }
-      
-      // Validate response data
-      if (!data || typeof data.severity_class === 'undefined') {
-        throw new Error("Invalid response from analysis service");
+
+      const data = await response.json();
+
+      if (!data || data.success === false) {
+        throw new Error(data?.error || "Invalid response from analysis service");
       }
-      
+
       onPrediction(data);
       toast({
         title: "Analysis complete",
