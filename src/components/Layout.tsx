@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { AIChatAssistant } from "@/components/AIChatAssistant";
 
 export default function Layout() {
   const location = useLocation();
@@ -25,7 +26,6 @@ export default function Layout() {
     { to: "/features", label: "Features" },
     { to: "/pricing", label: "Pricing" },
     { to: "/contact", label: "Contact" },
-    { to: "/ai-agent", label: "AI Agent" },
   ];
 
   return (
@@ -91,9 +91,36 @@ export default function Layout() {
 
       <main id="main" className="flex-1">
         <Outlet />
+        {/* Floating AI Assistant Toggle + Panel */}
+        <div className="fixed bottom-4 right-4 z-50">
+          <button
+            className="rounded-full shadow-lg bg-primary text-primary-foreground px-4 py-3 text-sm font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
+            onClick={() => setMobileOpen(false) || (window as any).toggleAssistant?.()}
+            aria-label="Toggle AI Assistant"
+          >
+            AI Assistant
+          </button>
+        </div>
+        <AssistantContainer />
       </main>
     </div>
   );
 }
+function AssistantContainer() {
+  const [open, setOpen] = useState(false);
+  // Expose a simple global toggle to avoid prop-drilling across routes
+  useEffect(() => {
+    (window as any).toggleAssistant = () => setOpen((v: boolean) => !v);
+    return () => { delete (window as any).toggleAssistant; };
+  }, []);
+
+  if (!open) return null;
+  return (
+    <div className="fixed inset-x-0 bottom-0 md:inset-auto md:bottom-4 md:right-4 md:max-w-lg z-50 md:rounded-lg md:border md:bg-background md:shadow-xl">
+      <AIChatAssistant />
+    </div>
+  );
+}
+
 
 

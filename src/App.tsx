@@ -6,7 +6,6 @@ import Landing from "./pages/Landing";
 import FeaturesPage from "./pages/FeaturesPage";
 import PricingPage from "./pages/PricingPage";
 import ContactPage from "./pages/ContactPage";
-import AIAgent from "./pages/AIAgent";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 
@@ -23,7 +22,6 @@ function App() {
             <Route path="/features" element={<FeaturesPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            <Route path="/ai-agent" element={<AIAgent />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

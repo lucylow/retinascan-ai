@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { DiagnosisResult } from "@/components/DiagnosisResult";
-import { AIChatAssistant } from "@/components/AIChatAssistant";
 import { ConfigWarning } from "@/components/ConfigWarning";
 import { Eye } from "lucide-react";
 
@@ -64,8 +63,6 @@ export default function Index() {
         </div>
       </footer>
 
-      {/* AI Chat Assistant */}
-      <AIChatAssistant />
     </div>
   );
 }
