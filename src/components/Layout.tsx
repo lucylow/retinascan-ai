@@ -22,11 +22,12 @@ export default function Layout() {
 
   const links = [
     { to: "/", label: "Home" },
+    { to: "/app", label: "App" },
     { to: "/retina", label: "Retina Scan" },
+    { to: "/dashboard", label: "AI Dashboard" },
     { to: "/features", label: "Features" },
     { to: "/pricing", label: "Pricing" },
     { to: "/contact", label: "Contact" },
-    { to: "/dashboard", label: "AI Dashboard" },
   ];
 
   return (
