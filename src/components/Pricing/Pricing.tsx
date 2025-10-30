@@ -1,19 +1,87 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { InteractiveCard } from '@/components/ui/InteractiveCard';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 import { Button } from '@/components/ui/button';
 
-const plans = [
-  { id: 'starter', name: 'Starter', price: 19, period: 'month', features: ['Up to 5 projects','Basic analytics','Email support','1GB storage','Basic templates'], cta: 'Start Free Trial' },
-  { id: 'professional', name: 'Professional', price: 49, period: 'month', features: ['Unlimited projects','Advanced analytics','Priority support','50GB storage','All templates','Custom domains','Team collaboration'], popular: true, cta: 'Get Started' },
-  { id: 'enterprise', name: 'Enterprise', price: 99, period: 'month', features: ['Unlimited everything','Real-time analytics','24/7 phone support','1TB storage','Custom development','SLA guarantee','Dedicated account manager'], cta: 'Contact Sales' },
+type Region = 'US' | 'EU' | 'AFRICA';
+
+type Plan = {
+  id: 'starter' | 'professional' | 'enterprise';
+  name: string;
+  basePrice: number | 'custom';
+  period: 'month';
+  features: string[];
+  popular?: boolean;
+  cta: string;
+};
+
+const BASE_PLANS: Plan[] = [
+  {
+    id: 'starter',
+    name: 'Starter (Primary Care Clinics)',
+    basePrice: 2500,
+    period: 'month',
+    features: [
+      'Includes 200 scans/month',
+      '$3/scan overage beyond 200',
+      'AI report generation under 2 minutes',
+      'Email support',
+      'No CPT billing integration',
+      'Secure cloud deployment',
+    ],
+    cta: 'Start 30-day Pilot',
+  },
+  {
+    id: 'professional',
+    name: 'Professional (Multi-Clinic Networks)',
+    basePrice: 8000,
+    period: 'month',
+    features: [
+      'Includes 1,000 scans/month',
+      '$2/scan overage beyond 1,000',
+      'CPT billing integration + 10% revenue share',
+      'Outcome-based bonuses available',
+      'Priority support and onboarding',
+      'EHR/FHIR integrations',
+    ],
+    popular: true,
+    cta: 'Get Started',
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise (Large Health Systems)',
+    basePrice: 'custom',
+    period: 'month',
+    features: [
+      'Unlimited scans',
+      'On‑prem or VPC deployment',
+      'Dedicated support and SLA',
+      'Custom AI model options',
+      'Full data integration (Epic, Cerner, Athena)',
+    ],
+    cta: 'Contact Sales',
+  },
 ];
 
 export const Pricing: React.FC = () => {
   const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
   const [selectedPlan, setSelectedPlan] = useState<string>('professional');
+  const [region, setRegion] = useState<Region>('US');
 
-  const getPrice = (price: number) => billingPeriod === 'year' ? price * 10 : price;
+  const regionalMultiplier = useMemo(() => {
+    if (region === 'EU') return 0.85;
+    if (region === 'AFRICA') return 0.6;
+    return 1;
+  }, [region]);
+
+  const plans = useMemo(() => BASE_PLANS, []);
+
+  const formatPrice = (basePrice: number | 'custom') => {
+    if (basePrice === 'custom') return 'Custom';
+    const monthly = Math.round(basePrice * regionalMultiplier);
+    if (billingPeriod === 'year') return `$${(monthly * 12 * 0.9).toLocaleString()}`;
+    return `$${monthly.toLocaleString()}`;
+  };
   const getPeriod = () => (billingPeriod === 'year' ? 'year' : 'month');
 
   return (
@@ -21,17 +89,31 @@ export const Pricing: React.FC = () => {
       <div className="container mx-auto px-4">
         <AnimatedSection>
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">Choose the perfect plan for your needs. No hidden fees, no surprises.</p>
-            <div className="flex items-center justify-center gap-4 mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">RetinaScan AI Pricing</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">Hybrid SaaS tiers designed for clinics and health systems. Transparent, value‑aligned pricing with optional CPT integration and outcome incentives.</p>
+            <div className="flex items-center justify-center gap-4 mb-12 flex-wrap">
               <span className={`font-medium ${billingPeriod === 'month' ? 'text-gray-900' : 'text-gray-500'}`}>Monthly</span>
               <button onClick={() => setBillingPeriod(prev => prev === 'month' ? 'year' : 'month')} className="relative w-14 h-7 bg-blue-600 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform duration-300 ${billingPeriod === 'year' ? 'transform translate-x-7' : 'transform translate-x-1'}`} />
               </button>
               <span className={`font-medium ${billingPeriod === 'year' ? 'text-gray-900' : 'text-gray-500'}`}>Yearly</span>
               {billingPeriod === 'year' && (
-                <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">Save 20%</span>
+                <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">Save 10%</span>
               )}
+              <span className="mx-2 hidden md:inline text-gray-300">|</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-700">Region:</span>
+                <select
+                  aria-label="Region selector"
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value as Region)}
+                  className="border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="US">United States</option>
+                  <option value="EU">Europe</option>
+                  <option value="AFRICA">Africa / LMIC</option>
+                </select>
+              </div>
             </div>
           </div>
         </AnimatedSection>
@@ -50,11 +132,11 @@ export const Pricing: React.FC = () => {
                   <div className="text-center mb-8">
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                     <div className="flex items-baseline justify-center gap-1 mb-4">
-                      <span className="text-4xl font-bold text-gray-900">${getPrice(plan.price)}</span>
+                      <span className="text-4xl font-bold text-gray-900">{formatPrice(plan.basePrice)}</span>
                       <span className="text-gray-600">/{getPeriod()}</span>
                     </div>
-                    {billingPeriod === 'year' && (
-                      <p className="text-green-600 text-sm font-medium">Save ${plan.price * 2} annually</p>
+                    {billingPeriod === 'year' && typeof plan.basePrice === 'number' && (
+                      <p className="text-green-600 text-sm font-medium">Save 10% with annual billing</p>
                     )}
                   </div>
 
@@ -80,8 +162,18 @@ export const Pricing: React.FC = () => {
 
         <AnimatedSection delay={600}>
           <div className="text-center mt-12">
-            <p className="text-gray-600 mb-4">All plans include 14-day free trial. No credit card required.</p>
-            <Button variant="outline" size="md">Compare all features</Button>
+            <div className="max-w-4xl mx-auto space-y-3 mb-8 text-sm text-gray-600">
+              <p>
+                Yearly pricing reflects a 10% discount. Regional pricing adjustments applied: Europe ×0.85, Africa/LMIC ×0.60. Professional tier includes optional CPT revenue share at 10% of successful claims. Outcome bonuses configurable by contract.
+              </p>
+              <p>
+                Data licensing for de‑identified datasets available separately ($100k–$250k per license). Contact sales for enterprise/on‑prem deployments and multi‑year agreements.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <Button variant="outline" size="md">Compare all features</Button>
+              <Button variant="ghost" size="md">Talk to Sales</Button>
+            </div>
           </div>
         </AnimatedSection>
       </div>

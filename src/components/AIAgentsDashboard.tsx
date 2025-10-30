@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AgentCard } from './AgentCard';
-import { ImageUploadArea } from './ImageUploadArea';
+import { useNavigate } from 'react-router-dom';
 import { WorkflowList } from './WorkflowList';
 import { WorkflowResults } from './WorkflowResults';
 import { SystemMetrics } from './SystemMetrics';
@@ -30,6 +30,7 @@ type WorkflowStatus = {
 };
 
 export const AIAgentsDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [agents, setAgents] = useState<AgentStatus[]>([]);
   const [workflows, setWorkflows] = useState<WorkflowStatus[]>([]);
   const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null);
@@ -171,7 +172,15 @@ export const AIAgentsDashboard: React.FC = () => {
 
         <div className="workflow-panel">
           <h2>Image Processing</h2>
-          <ImageUploadArea onUpload={handleImageUpload} isProcessing={isProcessing} />
+          <div className="p-4 border rounded-md bg-white text-center">
+            <p className="text-gray-700 mb-4">Uploads are handled on the Retina Scan page.</p>
+            <button
+              onClick={() => navigate('/retina')}
+              className="bg-blue-600 text-white px-5 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Go to Retina Scan
+            </button>
+          </div>
           <WorkflowList
             workflows={workflows}
             selectedWorkflow={selectedWorkflow}

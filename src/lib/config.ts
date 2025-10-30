@@ -3,6 +3,9 @@
  */
 
 export const config = {
+  api: {
+    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  },
   supabase: {
     url: import.meta.env.VITE_SUPABASE_URL || '',
     anonKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
@@ -23,6 +26,7 @@ export const config = {
 // Log configuration status in development
 if (import.meta.env.DEV) {
   console.log('🔧 Environment Configuration:', {
+    apiBaseUrl: config.api.baseUrl,
     hasSupabaseUrl: !!config.supabase.url,
     hasAnonKey: !!config.supabase.anonKey,
     isConfigured: config.isConfigured(),

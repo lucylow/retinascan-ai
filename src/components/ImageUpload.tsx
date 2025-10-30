@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { config } from "@/lib/config";
 
 interface ImageUploadProps {
   onPrediction: (prediction: any) => void;
@@ -49,9 +50,38 @@ export function ImageUpload({ onPrediction, isAnalyzing, setIsAnalyzing }: Image
 
     setIsAnalyzing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-retina", {
-        body: { image: selectedImage },
-      });
+      // Try backend first
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      let data: any | null = null;
+      let backendError: any | null = null;
+
+      try {
+        const resp = await fetch(`${config.api.baseUrl}/predict`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!resp.ok) {
+          const errText = await resp.text();
+          throw new Error(errText || `Backend error: ${resp.status}`);
+        }
+        data = await resp.json();
+      } catch (e: any) {
+        backendError = e;
+      }
+
+      // If backend failed, fallback to Supabase function if configured
+      if (!data) {
+        const { data: sbData, error } = await supabase.functions.invoke("analyze-retina", {
+          body: { image: selectedImage },
+        });
+        if (error) {
+          console.error("Supabase function error:", error);
+          throw new Error(error.message || backendError?.message || "Analysis failed");
+        }
+        data = sbData;
+      }
 
       if (error) {
         console.error("Supabase function error:", error);

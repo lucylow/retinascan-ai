@@ -1,12 +1,10 @@
 import { useState, useRef } from "react";
-import { ImageUpload } from "@/components/ImageUpload";
-import { DiagnosisResult } from "@/components/DiagnosisResult";
+import { useNavigate } from "react-router-dom";
 import { ConfigWarning } from "@/components/ConfigWarning";
 import { Eye } from "lucide-react";
 
 export default function Index() {
-  const [prediction, setPrediction] = useState<any>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const navigate = useNavigate();
   const uploadSectionRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -22,24 +20,21 @@ export default function Index() {
             Upload a retinal fundus image to get instant AI-powered analysis and diagnosis
           </p>
         </div>
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          <ImageUpload
-            onPrediction={setPrediction}
-            isAnalyzing={isAnalyzing}
-            setIsAnalyzing={setIsAnalyzing}
-          />
-          {prediction ? (
-            <DiagnosisResult prediction={prediction} />
-          ) : (
-            <div className="flex items-center justify-center min-h-[400px] rounded-lg border-2 border-dashed border-muted">
-              <div className="text-center space-y-4 p-8">
-                <Eye className="w-16 h-16 mx-auto text-muted-foreground/50" />
-                <p className="text-lg text-muted-foreground">
-                  Upload an image to see analysis results here
-                </p>
-              </div>
+        <div className="max-w-3xl mx-auto text-center space-y-6">
+          <button
+            onClick={() => navigate('/retina')}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-white shadow hover:opacity-90 transition"
+          >
+            Go to Retina Scan
+          </button>
+          <div className="flex items-center justify-center min-h-[200px] rounded-lg border-2 border-dashed border-muted">
+            <div className="text-center space-y-4 p-8">
+              <Eye className="w-16 h-16 mx-auto text-muted-foreground/50" />
+              <p className="text-lg text-muted-foreground">
+                Uploads now happen on the Retina Scan page
+              </p>
             </div>
-          )}
+          </div>
         </div>
       </section>
 
