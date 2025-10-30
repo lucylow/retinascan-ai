@@ -6,11 +6,9 @@ import { useRole } from '../../contexts/RoleContext';
 import { RoleSwitcher } from '../Common/RoleSwitcher';
 
 // Placeholder stubs for PatientInfo and Analysis components
-import { useNavigate } from 'react-router-dom';
 import { AnalysisResults } from '../Results/AnalysisResults';
 
 export const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
   const [currentPatient, setCurrentPatient] = useState<Patient | null>({
     id: '1',
     name: 'John Doe',
@@ -132,14 +130,8 @@ export const Dashboard: React.FC = () => {
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             {activeTab === 'scan' && (
-              <div className="p-8 text-center">
-                <p className="text-gray-700 mb-4">Retina image uploads are centralized.</p>
-                <button
-                  onClick={() => navigate('/retina')}
-                  className="bg-blue-600 text-white px-5 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  Go to Retina Scan
-                </button>
+              <div className="p-8 text-center text-gray-700">
+                Use the header’s "Start Retina Scan" to upload retina images.
               </div>
             )}
             {activeTab === 'results' && (

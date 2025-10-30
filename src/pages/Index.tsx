@@ -1,10 +1,9 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ConfigWarning } from "@/components/ConfigWarning";
 import { Eye } from "lucide-react";
 
 export default function Index() {
-  const navigate = useNavigate();
   const uploadSectionRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -21,17 +20,14 @@ export default function Index() {
           </p>
         </div>
         <div className="max-w-3xl mx-auto text-center space-y-6">
-          <button
-            onClick={() => navigate('/retina')}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-white shadow hover:opacity-90 transition"
-          >
-            Go to Retina Scan
-          </button>
           <div className="flex items-center justify-center min-h-[200px] rounded-lg border-2 border-dashed border-muted">
             <div className="text-center space-y-4 p-8">
               <Eye className="w-16 h-16 mx-auto text-muted-foreground/50" />
               <p className="text-lg text-muted-foreground">
-                Uploads now happen on the Retina Scan page
+                Use the header’s "Start Retina Scan" to upload your image
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Or <Link to="/retina" className="text-primary underline">open Retina Scan</Link>
               </p>
             </div>
           </div>

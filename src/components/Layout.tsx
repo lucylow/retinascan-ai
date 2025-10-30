@@ -23,7 +23,6 @@ export default function Layout() {
   const links = [
     { to: "/", label: "Home" },
     { to: "/app", label: "App" },
-    { to: "/retina", label: "Retina Scan" },
     { to: "/dashboard", label: "AI Dashboard" },
     { to: "/features", label: "Features" },
     { to: "/pricing", label: "Pricing" },
@@ -52,6 +51,12 @@ export default function Layout() {
               </NavLink>
             ))}
           </nav>
+          <Link
+            to="/retina"
+            className="hidden md:inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-white shadow hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            Start Retina Scan
+          </Link>
 
           {/* Mobile toggle */}
           <button
@@ -75,7 +80,13 @@ export default function Layout() {
           role="dialog"
           aria-modal="true"
         >
-          <nav className="container mx-auto px-4 py-3 flex flex-col gap-1" aria-label="Mobile navigation">
+          <nav className="container mx-auto px-4 py-3 flex flex-col gap-2" aria-label="Mobile navigation">
+            <Link
+              to="/retina"
+              className="w-full inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-white shadow hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              Start Retina Scan
+            </Link>
             {links.map((l) => (
               <NavLink
                 key={l.to}
