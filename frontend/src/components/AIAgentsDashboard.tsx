@@ -5,6 +5,7 @@ import { WorkflowList } from './WorkflowList';
 import { WorkflowResults } from './WorkflowResults';
 import { SystemMetrics } from './SystemMetrics';
 import '../styles/AIAgentsDashboard.css';
+import { config } from '@/lib/config';
 
 type AgentStatus = {
   role: string;
@@ -58,7 +59,7 @@ export const AIAgentsDashboard: React.FC = () => {
   const startMetricsPolling = useCallback(() => {
     const interval = setInterval(async () => {
       try {
-        const res = await fetch('/api/metrics');
+        const res = await fetch(`${config.api.baseUrl}/api/metrics`);
         if (res.ok) {
           const text = await res.text();
           if (text && text.trim().length > 0) {
@@ -73,7 +74,7 @@ export const AIAgentsDashboard: React.FC = () => {
           }
         }
 
-        const wfRes = await fetch('/api/workflows');
+        const wfRes = await fetch(`${config.api.baseUrl}/api/workflows`);
         if (wfRes.ok) {
           const wfText = await wfRes.text();
           if (wfText && wfText.trim().length > 0) {
@@ -159,7 +160,7 @@ export const AIAgentsDashboard: React.FC = () => {
     try {
       const fd = new FormData();
       fd.append('image', file);
-      const res = await fetch('/api/process', { method: 'POST', body: fd });
+      const res = await fetch(`${config.api.baseUrl}/api/process`, { method: 'POST', body: fd });
       if (!res.ok) {
         let message = `Request failed with ${res.status}`;
         try {
