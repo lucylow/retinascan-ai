@@ -10,6 +10,7 @@ import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 import RetinaScanPage from "./pages/RetinaScan";
 import AgentsDashboardPage from "./pages/AgentsDashboard";
+import AIAnalyzer from "./pages/AIAnalyzer";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ function App() {
             <Route path="/app" element={<Index />} />
             <Route path="/retina" element={<RetinaScanPage />} />
             <Route path="/dashboard" element={<AgentsDashboardPage />} />
+            <Route path="/ai-analyzer" element={<AIAnalyzer />} />
             <Route path="/features" element={<FeaturesPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/contact" element={<ContactPage />} />
