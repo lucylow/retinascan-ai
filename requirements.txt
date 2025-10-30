@@ -22,3 +22,4 @@ psycopg2-binary==2.9.9
 fhir.resources==7.1.0
 cryptography==41.0.7
 flask-cors==4.0.0
+scikit-image==0.22.0

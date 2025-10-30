@@ -3,6 +3,7 @@ from flask_cors import CORS
 import logging
 import os
 from datetime import datetime
+from typing import List, Dict, Any
 import json
 
 # Import custom modules
@@ -120,6 +121,11 @@ def health_check():
         "version": "1.0.0"
     })
 
+# Compatibility alias without /api prefix
+@app.route('/health', methods=['GET'])
+def health_check_alias():
+    return health_check()
+
 # Model info endpoint
 @app.route('/api/model/info', methods=['GET'])
 def model_info():
@@ -158,14 +164,15 @@ def predict():
             "error": "Model not initialized. Please try again later."
         }), 503
     
-    # Check if image file is present
-    if 'image' not in request.files:
+    # Check if image file is present (support both 'image' and 'file')
+    file_key = 'image' if 'image' in request.files else ('file' if 'file' in request.files else None)
+    if file_key is None:
         return jsonify({
             "success": False,
             "error": "No image file provided. Please upload an image."
         }), 400
     
-    image_file = request.files['image']
+    image_file = request.files[file_key]
     
     # Check if file is selected
     if image_file.filename == '':
@@ -222,6 +229,11 @@ def predict():
             "error": "An unexpected error occurred. Please try again."
         }), 500
 
+# Compatibility alias without /api prefix
+@app.route('/predict', methods=['POST'])
+def predict_alias():
+    return predict()
+
 # Batch prediction endpoint
 @app.route('/api/predict/batch', methods=['POST'])
 def batch_predict():
@@ -275,6 +287,71 @@ def batch_predict():
         "results": results,
         "errors": errors,
         "timestamp": datetime.utcnow().isoformat()
+    })
+
+# Process endpoint used by some frontend components
+@app.route('/api/process', methods=['POST'])
+def process_image():
+    return predict()
+
+# Simple system metrics for dashboard
+@app.route('/api/metrics', methods=['GET'])
+def get_metrics():
+    try:
+        import psutil  # optional
+        cpu = psutil.cpu_percent(interval=None)
+        mem = psutil.virtual_memory()._asdict()
+    except Exception:
+        cpu = None
+        mem = None
+    return jsonify({
+        "success": True,
+        "system_metrics": {
+            "cpu_percent": cpu,
+            "memory": mem,
+            "model_loaded": bool(retina_model and retina_model.model),
+        }
+    })
+
+# Recent workflows mock (last 10)
+_WORKFLOW_HISTORY: List[Dict[str, Any]] = []
+
+@app.route('/api/workflows', methods=['GET'])
+def list_workflows():
+    return jsonify({
+        "success": True,
+        "workflows": _WORKFLOW_HISTORY[-50:],
+    })
+
+# Nearby clinics mock dataset
+@app.route('/api/clinics', methods=['GET'])
+def list_clinics():
+    try:
+        lat = float(request.args.get('lat', '37.7749'))
+        lng = float(request.args.get('lng', '-122.4194'))
+    except ValueError:
+        lat, lng = 37.7749, -122.4194
+    radius_km = float(request.args.get('radius', '50'))
+    clinics = [
+        {
+            "id": "clinic_sf_general",
+            "name": "SF General Ophthalmology",
+            "lat": lat + 0.01,
+            "lng": lng - 0.01,
+            "distance_km": 5.2,
+        },
+        {
+            "id": "clinic_ucsf",
+            "name": "UCSF Eye Center",
+            "lat": lat - 0.015,
+            "lng": lng + 0.008,
+            "distance_km": 7.8,
+        },
+    ]
+    return jsonify({
+        "success": True,
+        "clinics": clinics,
+        "radius_km": radius_km,
     })
 
 # Diagnosis information endpoint
