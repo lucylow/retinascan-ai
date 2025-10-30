@@ -1,7 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
 import Landing from "./pages/Landing";
 import FeaturesPage from "./pages/FeaturesPage";
 import PricingPage from "./pages/PricingPage";
@@ -21,7 +20,7 @@ function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Landing />} />
-            <Route path="/app" element={<Index />} />
+            
             <Route path="/retina" element={<RetinaScanPage />} />
             <Route path="/dashboard" element={<AgentsDashboardPage />} />
             <Route path="/ai-analyzer" element={<AIAnalyzer />} />

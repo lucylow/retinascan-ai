@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 import logging
 import os
@@ -8,6 +8,12 @@ from datetime import datetime
 from config import Config
 from image_processor import ImageProcessor
 from model_loader import RetinaModel
+
+# Import EHR integration services
+from services.fhir_integration import FHIRIntegrationService, FHIRConfig
+from services.hl7_integration import HL7v2Integration, HL7MessageBuilder
+from services.clinical_workflow import ClinicalWorkflowManager
+from services.ehr_config import EHRConfig, DEPLOYMENT_CONFIG
 
 # Initialize logging
 logging.basicConfig(
@@ -27,6 +33,11 @@ CORS(app, origins=app.config['CORS_ORIGINS'])
 # Global model instance
 retina_model = None
 
+# Global EHR services
+fhir_service = None
+hl7_service = None
+workflow_manager = None
+
 @app.before_first_request
 def initialize_model():
     """Initialize the model before first request"""
@@ -37,6 +48,41 @@ def initialize_model():
     except Exception as e:
         logger.error(f"Failed to initialize model: {str(e)}")
         raise
+
+def initialize_ehr_services():
+    """Initialize EHR integration services"""
+    global fhir_service, hl7_service, workflow_manager
+    
+    if fhir_service is None:
+        try:
+            # Load EHR configuration
+            ehr_config = EHRConfig.from_env()
+            
+            # Initialize FHIR service
+            fhir_config = FHIRConfig(
+                fhir_base_url=ehr_config.fhir_base_url,
+                client_id=ehr_config.fhir_client_id,
+                client_secret=ehr_config.fhir_client_secret,
+                auth_url=ehr_config.fhir_auth_url,
+                token_url=ehr_config.fhir_token_url,
+                redirect_uri=ehr_config.fhir_redirect_uri
+            )
+            fhir_service = FHIRIntegrationService(fhir_config)
+            
+            # Initialize HL7 service
+            hl7_service = HL7v2Integration(
+                host=ehr_config.hl7_host,
+                port=ehr_config.hl7_port,
+                use_tls=ehr_config.hl7_use_tls
+            )
+            
+            # Initialize workflow manager
+            workflow_manager = ClinicalWorkflowManager(fhir_service, hl7_service)
+            
+            logger.info("EHR integration services initialized successfully")
+        except Exception as e:
+            logger.warning(f"EHR services not initialized: {str(e)}")
+            logger.info("Application will continue without EHR integration")
 
 # Error handlers
 @app.errorhandler(413)
@@ -240,6 +286,191 @@ def diagnosis_info():
         "recommendations": Config.RECOMMENDATIONS,
         "description": "Diabetic Retinopathy Severity Scale (0-4)"
     })
+
+# EHR Integration Endpoints
+@app.route('/api/ehr/patient/<patient_id>', methods=['GET'])
+def get_patient_info(patient_id):
+    """Get patient demographics from EHR"""
+    initialize_ehr_services()
+    
+    if not fhir_service:
+        return jsonify({
+            "success": False,
+            "error": "EHR integration not configured"
+        }), 503
+    
+    try:
+        demographics = fhir_service.get_patient_demographics(patient_id)
+        if demographics:
+            return jsonify({
+                "success": True,
+                "patient": demographics
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": "Patient not found"
+            }), 404
+    except Exception as e:
+        logger.error(f"Error fetching patient info: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to fetch patient information"
+        }), 500
+
+@app.route('/api/ehr/patient/<patient_id>/conditions', methods=['GET'])
+def get_patient_conditions(patient_id):
+    """Get patient conditions from EHR"""
+    initialize_ehr_services()
+    
+    if not fhir_service:
+        return jsonify({
+            "success": False,
+            "error": "EHR integration not configured"
+        }), 503
+    
+    try:
+        conditions = fhir_service.get_patient_conditions(patient_id)
+        return jsonify({
+            "success": True,
+            "conditions": conditions
+        })
+    except Exception as e:
+        logger.error(f"Error fetching conditions: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to fetch conditions"
+        }), 500
+
+@app.route('/api/ehr/submit-results', methods=['POST'])
+def submit_results_to_ehr():
+    """Submit AI results to EHR"""
+    initialize_ehr_services()
+    
+    if not fhir_service:
+        return jsonify({
+            "success": False,
+            "error": "EHR integration not configured"
+        }), 503
+    
+    try:
+        data = request.json
+        ai_result = data.get('ai_result')
+        image_data = data.get('image_data', '')
+        patient_id = data.get('patient_id')
+        
+        if not ai_result or not patient_id:
+            return jsonify({
+                "success": False,
+                "error": "Missing required fields: ai_result or patient_id"
+            }), 400
+        
+        result = fhir_service.submit_ai_results_to_ehr(
+            ai_result, image_data, patient_id
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error submitting results: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to submit results to EHR"
+        }), 500
+
+@app.route('/api/ehr/workflow', methods=['POST'])
+def process_workflow():
+    """Process complete clinical workflow"""
+    initialize_ehr_services()
+    
+    if not workflow_manager:
+        return jsonify({
+            "success": False,
+            "error": "EHR integration not configured"
+        }), 503
+    
+    try:
+        data = request.json
+        patient_id = data.get('patient_id')
+        image_data = data.get('image_data', '')
+        workflow_config = data.get('workflow_config', {})
+        
+        if not patient_id:
+            return jsonify({
+                "success": False,
+                "error": "Missing required field: patient_id"
+            }), 400
+        
+        # If no specific workflow config, use default from EHR config
+        if not workflow_config:
+            ehr_config = EHRConfig.from_env()
+            workflow_config = ehr_config.to_workflow_config()
+        
+        # Run workflow (in production this would be async)
+        import asyncio
+        result = asyncio.run(
+            workflow_manager.process_screening_workflow(
+                patient_id, image_data, workflow_config
+            )
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error processing workflow: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to process workflow"
+        }), 500
+
+@app.route('/api/ehr/workflow/<workflow_id>/audit', methods=['GET'])
+def get_workflow_audit(workflow_id):
+    """Get audit trail for a workflow"""
+    initialize_ehr_services()
+    
+    if not workflow_manager:
+        return jsonify({
+            "success": False,
+            "error": "EHR integration not configured"
+        }), 503
+    
+    try:
+        audit_trail = workflow_manager.get_workflow_audit_trail(workflow_id)
+        return jsonify({
+            "success": True,
+            "audit_trail": audit_trail
+        })
+    except Exception as e:
+        logger.error(f"Error fetching audit trail: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to fetch audit trail"
+        }), 500
+
+@app.route('/api/ehr/metrics', methods=['GET'])
+def get_workflow_metrics():
+    """Get workflow performance metrics"""
+    initialize_ehr_services()
+    
+    if not workflow_manager:
+        return jsonify({
+            "success": False,
+            "error": "EHR integration not configured"
+        }), 503
+    
+    try:
+        time_period = request.args.get('period', 'day')
+        metrics = workflow_manager.get_workflow_metrics(time_period)
+        return jsonify({
+            "success": True,
+            "metrics": metrics
+        })
+    except Exception as e:
+        logger.error(f"Error fetching metrics: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to fetch metrics"
+        }), 500
 
 if __name__ == '__main__':
     # Initialize model before running
