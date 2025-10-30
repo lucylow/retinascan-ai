@@ -8,16 +8,8 @@ export const config = {
     anonKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
   },
   
-  backend: {
-    apiUrl: import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:8000',
-  },
-  
   isConfigured: () => {
     return !!(config.supabase.url && config.supabase.anonKey);
-  },
-  
-  isBackendConfigured: () => {
-    return !!config.backend.apiUrl;
   },
   
   getMissingConfig: () => {
@@ -33,9 +25,7 @@ if (import.meta.env.DEV) {
   console.log('🔧 Environment Configuration:', {
     hasSupabaseUrl: !!config.supabase.url,
     hasAnonKey: !!config.supabase.anonKey,
-    backendApiUrl: config.backend.apiUrl,
-    isSupabaseConfigured: config.isConfigured(),
-    isBackendConfigured: config.isBackendConfigured(),
+    isConfigured: config.isConfigured(),
     missing: config.getMissingConfig(),
   });
 }

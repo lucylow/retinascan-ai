@@ -6,6 +6,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    hmr: {
+      overlay: true,
+      protocol: 'ws',
+    },
   },
   plugins: [
     react(),

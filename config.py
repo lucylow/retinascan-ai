@@ -30,15 +30,7 @@ class Config:
     NUM_CLASSES = 5
     
     # CORS configuration
-    # For Lovable.dev integration, add your specific domain to the CORS_ORIGINS env variable
-    # Example: CORS_ORIGINS=http://localhost:3000,http://localhost:5173,https://your-app.lovable.dev
-    # Optionally, use a regex (e.g., ^https:\/\/.*\.lovable\.dev$) via CORS_ORIGIN_REGEX
-    default_origins = "http://localhost:3000,http://localhost:5173,http://localhost:8080"
-    cors_env = os.getenv("CORS_ORIGINS", default_origins)
-    # Split and strip whitespace from each origin
-    CORS_ORIGINS = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
-    # Regex support for wildcard domains (compatible with allow_credentials)
-    CORS_ORIGIN_REGEX = os.getenv("CORS_ORIGIN_REGEX", "")
+    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
     
     # Diagnosis labels and recommendations
     DIAGNOSIS_LABELS = {

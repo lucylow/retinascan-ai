@@ -9,19 +9,12 @@ from pydantic import BaseModel
 from typing import Dict, Optional
 import logging
 from datetime import datetime
-import base64
-import io
-
-import numpy as np
-from PIL import Image
 
 from config import Config
 from utils.image_processor import ImageProcessor
 from utils.model_manager import model_manager
 from services.prediction_service import PredictionService
 from fastapi.concurrency import run_in_threadpool
-from image_quality_assessment import quality_checker
-from retinopathy_model import retina_ai
 
 # Configure logging
 logging.basicConfig(
@@ -38,39 +31,13 @@ app = FastAPI(
 )
 
 # Configure CORS
-cors_kwargs = {
-    "allow_credentials": True,
-    "allow_methods": ["*"],
-    "allow_headers": ["*"],
-}
-
-# Prefer regex if provided (supports wildcard domains like *.lovable.dev)
-if getattr(Config, "CORS_ORIGIN_REGEX", ""):
-    cors_kwargs["allow_origin_regex"] = Config.CORS_ORIGIN_REGEX
-    cors_kwargs["allow_origins"] = []
-else:
-    # If '*' explicitly included, use regex to remain compatible with credentials
-    if "*" in Config.CORS_ORIGINS:
-        cors_kwargs["allow_origin_regex"] = ".*"
-        cors_kwargs["allow_origins"] = []
-    else:
-        cors_kwargs["allow_origins"] = Config.CORS_ORIGINS
-
-app.add_middleware(CORSMiddleware, **cors_kwargs)
-
-
-# Simple request logging to help diagnose CORS and connectivity issues
-@app.middleware("http")
-async def log_requests(request, call_next):
-    try:
-        origin = request.headers.get("origin")
-        path = request.url.path
-        logger.info(f"Request path={path} origin={origin}")
-    except Exception:
-        # Avoid blocking if headers parsing fails
-        pass
-    response = await call_next(request)
-    return response
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=Config.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # Response models
@@ -101,20 +68,6 @@ class ErrorResponse(BaseModel):
     error: str
     detail: Optional[str] = None
     timestamp: str
-
-
-class Base64ImageRequest(BaseModel):
-    """Request body containing a base64-encoded image."""
-    image: str
-
-def _decode_base64_to_rgb_ndarray(b64_string: str) -> np.ndarray:
-    """Decode base64 image string to RGB numpy array."""
-    # Support data URLs (e.g., data:image/jpeg;base64,....)
-    if "," in b64_string:
-        b64_string = b64_string.split(",", 1)[1]
-    image_bytes = base64.b64decode(b64_string)
-    pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    return np.array(pil_image)
 
 
 # Startup event
@@ -225,51 +178,10 @@ async def predict_retinopathy(file: UploadFile = File(...)):
         )
 
 
-@app.post("/quality")
-async def assess_quality_json(payload: Base64ImageRequest):
-    """Assess image quality from base64 image for mobile clients."""
-    try:
-        image = _decode_base64_to_rgb_ndarray(payload.image)
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Invalid image data: {exc}")
-
-    result = await run_in_threadpool(quality_checker.assess_quality, image)
-    # Normalize response to match mobile expectations
-    response = {
-        "acceptable": not result["should_retake"],
-        "grade": result["quality_grade"],
-        "confidence": result["confidence"],
-        "feedback": result["feedback"],
-        "metrics": result["metrics"],
-    }
-    return response
-
-
-@app.post("/analyze")
-async def analyze_image_json(payload: Base64ImageRequest):
-    """Analyze retinal image from base64 for multi-disease predictions."""
-    try:
-        image = _decode_base64_to_rgb_ndarray(payload.image)
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Invalid image data: {exc}")
-
-    result = await run_in_threadpool(retina_ai.predict_with_confidence, image)
-    return result
-
-
 @app.get("/model/info")
 async def get_model_info():
     """Get detailed model information"""
     return model_manager.get_model_info()
-
-
-@app.get("/debug/cors")
-async def debug_cors():
-    """Expose current CORS configuration for debugging purposes."""
-    return {
-        "allow_origins": Config.CORS_ORIGINS,
-        "allow_origin_regex": getattr(Config, "CORS_ORIGIN_REGEX", ""),
-    }
 
 
 # Error handlers

@@ -5,7 +5,6 @@ import { AIChatAssistant } from "@/components/AIChatAssistant";
 import { FeatureCard } from "@/components/FeatureCard";
 import { StatCard } from "@/components/StatCard";
 import { ConfigWarning } from "@/components/ConfigWarning";
-import { BackendHealthCheck } from "@/components/BackendHealthCheck";
 import { Button } from "@/components/ui/button";
 import {
   Eye,
@@ -23,7 +22,6 @@ import {
 export default function Index() {
   const [prediction, setPrediction] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [uploadedImageSrc, setUploadedImageSrc] = useState<string | null>(null);
   const uploadSectionRef = useRef<HTMLDivElement>(null);
 
   const scrollToUpload = () => {
@@ -171,9 +169,6 @@ export default function Index() {
       {/* Main Upload Section */}
       <section ref={uploadSectionRef} className="container mx-auto px-4 py-24 scroll-mt-20">
         <ConfigWarning />
-        <div className="max-w-4xl mx-auto mb-8">
-          <BackendHealthCheck />
-        </div>
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Analyze Your <span className="text-primary">Retinal Image</span>
@@ -187,10 +182,9 @@ export default function Index() {
             onPrediction={setPrediction}
             isAnalyzing={isAnalyzing}
             setIsAnalyzing={setIsAnalyzing}
-            onImageSelect={setUploadedImageSrc}
           />
           {prediction ? (
-            <DiagnosisResult prediction={prediction} imageSrc={uploadedImageSrc || undefined} />
+            <DiagnosisResult prediction={prediction} />
           ) : (
             <div className="flex items-center justify-center min-h-[400px] rounded-lg border-2 border-dashed border-muted">
               <div className="text-center space-y-4 p-8">

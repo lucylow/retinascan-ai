@@ -2,14 +2,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, CheckCircle, AlertTriangle } from "lucide-react";
-import { AIExplainability } from "./AIExplainability";
-import { PredictionResponse } from "@/lib/validation";
-import { useState } from "react";
-import { Button } from "./ui/button";
-import { ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 
 interface DiagnosisResultProps {
-  prediction: PredictionResponse & {
+  prediction: {
     severity_class: number;
     severity_level: string;
     confidence: number;
@@ -23,12 +18,9 @@ interface DiagnosisResultProps {
     };
     class_probabilities: Record<string, number>;
   };
-  imageSrc?: string;
 }
 
-export function DiagnosisResult({ prediction, imageSrc }: DiagnosisResultProps) {
-  const [showExplainability, setShowExplainability] = useState(false);
-
+export function DiagnosisResult({ prediction }: DiagnosisResultProps) {
   const getSeverityColor = (severity: number) => {
     if (severity === 0) return "text-green-500";
     if (severity === 1) return "text-yellow-500";
@@ -43,98 +35,70 @@ export function DiagnosisResult({ prediction, imageSrc }: DiagnosisResultProps) 
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-right duration-500">
-      <Card className="p-6">
-        <h2 className="text-2xl font-semibold mb-4">Diagnosis Result</h2>
-        
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className={getSeverityColor(prediction.severity_class)}>
-              {getSeverityIcon(prediction.severity_class)}
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg">{prediction.label}</h3>
-              <Badge variant={prediction.severity_class === 0 ? "default" : "destructive"}>
-                {prediction.severity_level}
-              </Badge>
-            </div>
+    <Card className="p-6 animate-in fade-in slide-in-from-right duration-500">
+      <h2 className="text-2xl font-semibold mb-4">Diagnosis Result</h2>
+      
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className={getSeverityColor(prediction.severity_class)}>
+            {getSeverityIcon(prediction.severity_class)}
           </div>
-
-          <div>
-            <div className="flex justify-between mb-2">
-              <span className="text-sm font-medium">Confidence</span>
-              <span className="text-sm font-medium">{(prediction.confidence * 100).toFixed(1)}%</span>
-            </div>
-            <Progress value={prediction.confidence * 100} className="h-2" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg">{prediction.label}</h3>
+            <Badge variant={prediction.severity_class === 0 ? "default" : "destructive"}>
+              {prediction.severity_level}
+            </Badge>
           </div>
+        </div>
 
-          <div className="bg-muted/50 p-4 rounded-lg space-y-3">
-            <h4 className="font-semibold mb-2">Recommendation</h4>
-            <p className="text-sm text-muted-foreground">{prediction.recommendation}</p>
-            
-            {prediction.structured_recommendation && (
-              <div className="mt-3 pt-3 border-t border-border space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-muted-foreground">Action:</span>
-                  <span className="text-xs">{prediction.structured_recommendation.action}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-muted-foreground">Urgency:</span>
-                  <Badge variant="outline" className="text-xs">{prediction.structured_recommendation.urgency}</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-muted-foreground">Follow-up:</span>
-                  <span className="text-xs">{prediction.structured_recommendation.follow_up_time}</span>
-                </div>
-                <div className="text-xs italic text-muted-foreground mt-2">
-                  {prediction.structured_recommendation.note}
-                </div>
+        <div>
+          <div className="flex justify-between mb-2">
+            <span className="text-sm font-medium">Confidence</span>
+            <span className="text-sm font-medium">{(prediction.confidence * 100).toFixed(1)}%</span>
+          </div>
+          <Progress value={prediction.confidence * 100} className="h-2" />
+        </div>
+
+        <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+          <h4 className="font-semibold mb-2">Recommendation</h4>
+          <p className="text-sm text-muted-foreground">{prediction.recommendation}</p>
+          
+          {prediction.structured_recommendation && (
+            <div className="mt-3 pt-3 border-t border-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Action:</span>
+                <span className="text-xs">{prediction.structured_recommendation.action}</span>
               </div>
-            )}
-          </div>
-
-          <div>
-            <h4 className="font-semibold mb-3">Class Probabilities</h4>
-            <div className="space-y-2">
-              {Object.entries(prediction.class_probabilities).map(([cls, prob]) => (
-                <div key={cls}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>{cls.replace("class_", "Class ")}</span>
-                    <span>{(prob * 100).toFixed(1)}%</span>
-                  </div>
-                  <Progress value={prob * 100} className="h-1" />
-                </div>
-              ))}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Urgency:</span>
+                <Badge variant="outline" className="text-xs">{prediction.structured_recommendation.urgency}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Follow-up:</span>
+                <span className="text-xs">{prediction.structured_recommendation.follow_up_time}</span>
+              </div>
+              <div className="text-xs italic text-muted-foreground mt-2">
+                {prediction.structured_recommendation.note}
+              </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* AI Explainability Toggle */}
-          <div className="pt-4 border-t border-border">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setShowExplainability(!showExplainability)}
-              aria-expanded={showExplainability}
-              aria-controls="ai-explainability-panel"
-            >
-              <Lightbulb className="w-4 h-4 mr-2" />
-              {showExplainability ? 'Hide' : 'Show'} AI Explanation
-              {showExplainability ? (
-                <ChevronUp className="w-4 h-4 ml-2" />
-              ) : (
-                <ChevronDown className="w-4 h-4 ml-2" />
-              )}
-            </Button>
+        <div>
+          <h4 className="font-semibold mb-3">Class Probabilities</h4>
+          <div className="space-y-2">
+            {Object.entries(prediction.class_probabilities).map(([cls, prob]) => (
+              <div key={cls}>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>{cls.replace("class_", "Class ")}</span>
+                  <span>{(prob * 100).toFixed(1)}%</span>
+                </div>
+                <Progress value={prob * 100} className="h-1" />
+              </div>
+            ))}
           </div>
         </div>
-      </Card>
-
-      {/* AI Explainability Panel */}
-      {showExplainability && (
-        <div id="ai-explainability-panel" className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-          <AIExplainability prediction={prediction} imageSrc={imageSrc} />
-        </div>
-      )}
-    </div>
+      </div>
+    </Card>
   );
 }
