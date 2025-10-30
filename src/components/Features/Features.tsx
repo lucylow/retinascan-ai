@@ -3,12 +3,12 @@ import { InteractiveCard } from '@/components/ui/InteractiveCard';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 
 const features = [
-  { id: '1', title: 'Lightning Fast', description: 'Blazing fast performance with optimized code and modern architecture.', icon: '⚡', color: 'from-yellow-400 to-orange-500' },
-  { id: '2', title: 'Fully Responsive', description: 'Looks perfect on all devices from mobile to desktop.', icon: '📱', color: 'from-blue-400 to-cyan-500' },
-  { id: '3', title: 'SEO Optimized', description: 'Built with search engine optimization best practices.', icon: '🔍', color: 'from-green-400 to-teal-500' },
-  { id: '4', title: 'Secure & Safe', description: 'Enterprise-grade security to protect your data.', icon: '🛡️', color: 'from-red-400 to-pink-500' },
-  { id: '5', title: 'Easy to Use', description: 'Intuitive interface that requires no technical skills.', icon: '🎯', color: 'from-purple-400 to-indigo-500' },
-  { id: '6', title: '24/7 Support', description: 'Round-the-clock customer support and documentation.', icon: '💬', color: 'from-indigo-400 to-blue-500' },
+  { id: '1', title: 'Lightning Fast', description: 'Get results in seconds with our optimized AI pipeline.', icon: '⚡', color: 'from-yellow-400 to-orange-500' },
+  { id: '2', title: 'Highly Accurate', description: 'Clinical-grade vision models trained on thousands of retinal images.', icon: '🎯', color: 'from-green-400 to-teal-500' },
+  { id: '3', title: 'Detailed Insights', description: 'Confidence scores, severity classification, and recommendations.', icon: '📊', color: 'from-purple-400 to-indigo-500' },
+  { id: '4', title: '5 Severity Levels', description: 'From No DR to Proliferative DR with clear explanations.', icon: '🩺', color: 'from-red-400 to-pink-500' },
+  { id: '5', title: 'AI-Powered', description: 'Backed by state-of-the-art foundation models for robust analysis.', icon: '🧠', color: 'from-blue-400 to-cyan-500' },
+  { id: '6', title: 'Easy to Use', description: 'Upload a fundus image and get instant, actionable results.', icon: '📱', color: 'from-indigo-400 to-blue-500' },
 ];
 
 export const Features: React.FC = () => {
@@ -19,8 +19,8 @@ export const Features: React.FC = () => {
       <div className="container mx-auto px-4">
         <AnimatedSection>
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Powerful Features</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Everything you need to build amazing websites and applications</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Why Choose RetinaScan AI?</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Cutting-edge AI designed for clinicians, researchers, and healthcare teams</p>
           </div>
         </AnimatedSection>
 

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
+import { useNavigate } from 'react-router-dom';
 
 export const Hero: React.FC = () => {
+  const navigate = useNavigate();
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const words = ['amazing', 'beautiful', 'fast', 'responsive', 'modern'];
+  const words = ['accurate', 'fast', 'reliable', 'clinician-friendly', 'modern'];
 
   useEffect(() => {
     const currentWord = words[currentWordIndex];
@@ -32,9 +34,9 @@ export const Hero: React.FC = () => {
   }, [displayText, isDeleting, currentWordIndex]);
 
   const stats = [
-    { number: '10K+', label: 'Happy Customers' },
-    { number: '99.9%', label: 'Uptime' },
-    { number: '24/7', label: 'Support' },
+    { number: '95%+', label: 'Accuracy Rate' },
+    { number: '<5s', label: 'Avg. Analysis Time' },
+    { number: '5', label: 'Severity Levels' },
   ];
 
   return (
@@ -48,19 +50,16 @@ export const Hero: React.FC = () => {
       <div className="relative z-10 container mx-auto px-4 text-center">
         <AnimatedSection direction="down" delay={200}>
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-            Build{' '}
+            RetinaScan{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              {displayText}
+              AI
             </span>
-            <br />
-            websites
           </h1>
         </AnimatedSection>
 
         <AnimatedSection direction="up" delay={400}>
           <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Transform your ideas into stunning digital experiences with our modern 
-            platform. Fast, reliable, and built for the future.
+            AI-powered diabetic retinopathy detection. {displayText} analysis with clinical-grade insights.
           </p>
         </AnimatedSection>
 
@@ -69,13 +68,18 @@ export const Hero: React.FC = () => {
             <Button
               size="lg"
               className="shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
+              onClick={() => navigate('/app')}
             >
-              Get Started Free
+              Analyze an Image
             </Button>
             <Button
               variant="outline"
               size="lg"
               className="border-2"
+              onClick={() => {
+                const el = document.getElementById('features');
+                el?.scrollIntoView({ behavior: 'smooth' });
+              }}
             >
               Watch Demo
             </Button>

@@ -32,7 +32,7 @@ export default function Landing() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <div className="text-2xl font-bold text-gray-900">Logo</div>
+              <div className="text-2xl font-bold text-gray-900">RetinaScan AI</div>
             </div>
             <div className="hidden md:flex items-center space-x-8">
               {['features', 'pricing', 'testimonials', 'contact'].map((item) => (
@@ -41,7 +41,7 @@ export default function Landing() {
                 </button>
               ))}
             </div>
-            <Button onClick={() => scrollToSection('contact')} className="px-6 py-2">Get Started</Button>
+            <Button onClick={() => window.location.assign('/app')} className="px-6 py-2">Analyze Image</Button>
           </div>
         </div>
       </nav>
@@ -57,14 +57,14 @@ export default function Landing() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <div className="text-2xl font-bold mb-4">Logo</div>
-            <p className="text-gray-400 mb-8 max-w-md mx-auto">Building the future of web development with cutting-edge technology and design.</p>
+            <div className="text-2xl font-bold mb-4">RetinaScan AI</div>
+            <p className="text-gray-400 mb-8 max-w-md mx-auto">AI-powered diabetic retinopathy detection with clinical-grade insights.</p>
             <div className="flex justify-center space-x-6 mb-8">
               {['Twitter', 'GitHub', 'LinkedIn', 'Discord'].map((social) => (
                 <a key={social} href="#" className="text-gray-400 hover:text-white transition-colors duration-200">{social}</a>
               ))}
             </div>
-            <div className="text-gray-500 text-sm">© 2024 Your Company. All rights reserved.</div>
+            <div className="text-gray-500 text-sm">© 2024 RetinaScan AI. All rights reserved.</div>
           </div>
         </div>
       </footer>
