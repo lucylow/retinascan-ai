@@ -11,7 +11,7 @@ const plans = [
 
 export const Pricing: React.FC = () => {
   const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
-  const [selectedPlan, setSelectedPlan] = useState<string>('professional');
+  const [, setSelectedPlan] = useState<string>('professional');
 
   const getPrice = (price: number) => billingPeriod === 'year' ? price * 10 : price;
   const getPeriod = () => (billingPeriod === 'year' ? 'year' : 'month');
@@ -81,7 +81,7 @@ export const Pricing: React.FC = () => {
         <AnimatedSection delay={600}>
           <div className="text-center mt-12">
             <p className="text-gray-600 mb-4">All plans include 14-day free trial. No credit card required.</p>
-            <Button variant="outline" size="md">Compare all features</Button>
+            <Button variant="outline" size="default">Compare all features</Button>
           </div>
         </AnimatedSection>
       </div>

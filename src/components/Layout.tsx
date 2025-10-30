@@ -96,7 +96,7 @@ export default function Layout() {
         <div className="fixed bottom-4 right-4 z-50">
           <button
             className="rounded-full shadow-lg bg-primary text-primary-foreground px-4 py-3 text-sm font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
-            onClick={() => setMobileOpen(false) || (window as any).toggleAssistant?.()}
+            onClick={() => { setMobileOpen(false); (window as any).toggleAssistant?.(); }}
             aria-label="Toggle AI Assistant"
           >
             AI Assistant

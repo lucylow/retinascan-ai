@@ -10,7 +10,7 @@ import { ScanUpload } from '../Scan/ScanUpload';
 import { AnalysisResults } from '../Results/AnalysisResults';
 
 export const Dashboard: React.FC = () => {
-  const [currentPatient, setCurrentPatient] = useState<Patient | null>({
+  const [currentPatient] = useState<Patient | null>({
     id: '1',
     name: 'John Doe',
     age: 58,

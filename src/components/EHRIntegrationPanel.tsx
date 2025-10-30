@@ -7,13 +7,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useEHRIntegration } from '@/hooks/useEHRIntegration';
 import { AnalysisResult } from '@/types/retina';
 import {
-  Hospital,
+  Building2 as Hospital,
   Upload,
   User,
   AlertCircle,
   CheckCircle,
   Loader2,
-  Activity,
 } from 'lucide-react';
 
 interface EHRIntegrationPanelProps {

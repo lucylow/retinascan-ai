@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import AIVisualization from '@/components/AIVisualization';
 
 export default function RetinaDataViz() {
