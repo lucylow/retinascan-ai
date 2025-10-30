@@ -22,7 +22,9 @@ export default function Layout() {
   const links = [
     { to: "/", label: "Home" },
     { to: "/app", label: "App" },
-    { to: "/landing", label: "Landing" },
+    { to: "/features", label: "Features" },
+    { to: "/pricing", label: "Pricing" },
+    { to: "/contact", label: "Contact" },
     { to: "/ai-agent", label: "AI Agent" },
   ];
 

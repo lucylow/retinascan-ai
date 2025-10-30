@@ -1,52 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Hero } from '@/components/Hero/Hero';
 import { Features } from '@/components/Features/Features';
 import { Pricing } from '@/components/Pricing/Pricing';
 import { Testimonials } from '@/components/Testimonials/Testimonials';
 import { Contact } from '@/components/Contact/Contact';
-import { useScrollAnimation } from '@/hooks/useScrollAnimation';
-import { Button } from '@/components/ui/button';
+ 
 
 export default function Landing() {
-  const { scrollY, scrollDirection } = useScrollAnimation();
-  const [isNavVisible, setIsNavVisible] = useState(true);
-
-  useEffect(() => {
-    if (scrollY > 100 && scrollDirection === 'down') {
-      setIsNavVisible(false);
-    } else {
-      setIsNavVisible(true);
-    }
-  }, [scrollY, scrollDirection]);
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   return (
     <div className="min-h-screen">
-      <nav className={`fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${isNavVisible ? 'transform translate-y-0' : 'transform -translate-y-full'}`}>
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <div className="text-2xl font-bold text-gray-900">RetinaScan AI</div>
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              {['features', 'pricing', 'testimonials', 'contact'].map((item) => (
-                <button key={item} onClick={() => scrollToSection(item)} className="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium capitalize">
-                  {item}
-                </button>
-              ))}
-            </div>
-            <Button onClick={() => window.location.assign('/app')} className="px-6 py-2">Analyze Image</Button>
-          </div>
-        </div>
-      </nav>
-
-      <main>
+      <main className="pt-16">
         <Hero />
         <Features />
         <Pricing />
