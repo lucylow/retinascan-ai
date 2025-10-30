@@ -82,11 +82,6 @@ export function ImageUpload({ onPrediction, isAnalyzing, setIsAnalyzing }: Image
         }
         data = sbData;
       }
-
-      if (error) {
-        console.error("Supabase function error:", error);
-        throw new Error(error.message || "Analysis failed");
-      }
       
       // Validate response data
       if (!data || typeof data.severity_class === 'undefined') {
