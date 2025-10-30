@@ -59,28 +59,36 @@ export const AIAgentsDashboard: React.FC = () => {
     const interval = setInterval(async () => {
       try {
         const res = await fetch('/api/metrics');
-        const data = await res.json();
-        setSystemMetrics(data.system_metrics || {});
-
-        const agentsMapped = mapAgents(data.system_metrics?.agent_performance);
-        setAgents(agentsMapped);
+        if (res.ok) {
+          const text = await res.text();
+          if (text) {
+            const data = JSON.parse(text);
+            setSystemMetrics(data.system_metrics || {});
+            const agentsMapped = mapAgents(data.system_metrics?.agent_performance);
+            setAgents(agentsMapped);
+          }
+        }
 
         const wfRes = await fetch('/api/workflows');
-        const wfData = await wfRes.json();
-        const wfStatuses: WorkflowStatus[] = (wfData.workflows || []).slice(-10).map((wf: any) => ({
-          id: wf.workflow_id || 'unknown',
-          status: (wf.status || 'running') as WorkflowStatus['status'],
-          progress: calculateProgress(wf),
-          currentStep: getCurrentStep(wf),
-          startTime: wf.start_time ? new Date(wf.start_time) : new Date(),
-          endTime: wf.end_time ? new Date(wf.end_time) : undefined,
-          result: wf.result,
-          error: wf.error,
-        }));
-        setWorkflows(wfStatuses);
+        if (wfRes.ok) {
+          const wfText = await wfRes.text();
+          if (wfText) {
+            const wfData = JSON.parse(wfText);
+            const wfStatuses: WorkflowStatus[] = (wfData.workflows || []).slice(-10).map((wf: any) => ({
+              id: wf.workflow_id || 'unknown',
+              status: (wf.status || 'running') as WorkflowStatus['status'],
+              progress: calculateProgress(wf),
+              currentStep: getCurrentStep(wf),
+              startTime: wf.start_time ? new Date(wf.start_time) : new Date(),
+              endTime: wf.end_time ? new Date(wf.end_time) : undefined,
+              result: wf.result,
+              error: wf.error,
+            }));
+            setWorkflows(wfStatuses);
+          }
+        }
       } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error('Polling failed', e);
+        // API not available - this is expected when backend is not running
       }
     }, 2000);
     return () => clearInterval(interval);
