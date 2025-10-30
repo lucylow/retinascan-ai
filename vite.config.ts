@@ -7,7 +7,6 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     proxy: {
-      // Forward frontend calls to the backend during development
       "/api": {
         target: process.env.VITE_API_BASE_URL || "http://localhost:5000",
         changeOrigin: true,
@@ -21,6 +20,9 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
   ].filter(Boolean),
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
