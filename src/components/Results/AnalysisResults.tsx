@@ -1,5 +1,6 @@
 import React from 'react';
 import { Patient, RetinaScan, AnalysisResult } from '../../types/retina';
+import { EHRIntegrationPanel } from '../EHRIntegrationPanel';
 
 interface AnalysisResultsProps {
   patient: Patient | null;
@@ -192,6 +193,15 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ patient, scan,
         <button onClick={handleDownloadReport} className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Download Full Report</button>
         <button onClick={handleScheduleFollowUp} className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">Schedule Follow-up</button>
         <button onClick={handleShare} className="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">Share with Specialist</button>
+      </div>
+
+      {/* EHR Integration Panel */}
+      <div className="mt-8">
+        <EHRIntegrationPanel
+          analysisResult={result}
+          imageData={scan?.image}
+          patientId={patient?.id}
+        />
       </div>
 
       <div className="mt-8 bg-gray-50 border border-gray-200 rounded-lg p-4">

@@ -6,6 +6,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      // Forward frontend calls to the backend during development
+      "/api": {
+        target: process.env.VITE_API_BASE_URL || "http://localhost:5000",
+        changeOrigin: true,
+      },
+    },
     hmr: {
       overlay: true,
       protocol: 'ws',

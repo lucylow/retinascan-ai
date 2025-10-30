@@ -8,6 +8,7 @@ import ContactPage from "./pages/ContactPage";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 import RetinaScanPage from "./pages/RetinaScan";
+import PatientIntakePage from "./pages/PatientIntake";
 import AgentsDashboardPage from "./pages/AgentsDashboard";
 import AIAnalyzer from "./pages/AIAnalyzer";
 
@@ -22,6 +23,7 @@ function App() {
             <Route path="/" element={<Landing />} />
             
             <Route path="/retina" element={<RetinaScanPage />} />
+            <Route path="/intake" element={<PatientIntakePage />} />
             <Route path="/dashboard" element={<AgentsDashboardPage />} />
             <Route path="/ai-analyzer" element={<AIAnalyzer />} />
             <Route path="/features" element={<FeaturesPage />} />

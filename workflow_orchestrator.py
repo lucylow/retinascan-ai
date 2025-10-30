@@ -6,6 +6,16 @@ import json
 import uuid
 import numpy as np
 from ai_agents import *
+import tensorflow as tf  # for transparency-enhanced orchestrator
+
+# Transparency & Explainability components
+try:
+    from transparency_agent import TransparencyAgent
+    from enhanced_report_generator import EnhancedReportGenerator
+except Exception:
+    # Allow base orchestrator usage even if transparency modules are unavailable
+    TransparencyAgent = None  # type: ignore
+    EnhancedReportGenerator = None  # type: ignore
 
 
 class WorkflowOrchestrator:
@@ -356,5 +366,106 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Enhanced orchestrator with transparency integration
+class TransparencyEnhancedOrchestrator(WorkflowOrchestrator):
+    """Orchestrator with built-in transparency and explainability"""
+
+    def __init__(self, model_path: str):
+        super().__init__(model_path)
+
+        # Load AI model for XAI
+        try:
+            self.model = tf.keras.models.load_model(model_path)
+        except Exception:
+            self.model = None
+
+        # Initialize transparency components if available
+        if TransparencyAgent and EnhancedReportGenerator and self.model is not None:
+            self.transparency_agent = TransparencyAgent(self.model)
+            self.enhanced_report_generator = EnhancedReportGenerator(self.model)
+        else:
+            self.transparency_agent = None
+            self.enhanced_report_generator = None
+
+    def _execute_report_generation(self, workflow: Dict, quality_data: Dict) -> Dict:
+        """Enhanced report generation with explainability"""
+
+        if not self.enhanced_report_generator:
+            return {
+                'error': 'Transparency modules unavailable',
+                'clinician_report': {},
+                'patient_report': {}
+            }
+
+        workflow_data = {
+            'workflow_id': workflow.get('id', 'unknown'),
+            'image_data': workflow.get('image_data'),
+            'prediction_result': workflow.get('results', {}).get('model_prediction'),
+            'quality_assessment': workflow.get('results', {}).get('data_processing'),
+            'diagnosis_analysis': workflow.get('results', {}).get('diagnosis_analysis'),
+            'quality_control': quality_data,
+            'metadata': workflow.get('metadata', {})
+        }
+
+        enhanced_report = self.enhanced_report_generator.generate_enhanced_report(
+            workflow_data,
+            audience='clinician'
+        )
+
+        patient_report = self.enhanced_report_generator.generate_enhanced_report(
+            workflow_data,
+            audience='patient'
+        )
+
+        return {
+            'clinician_report': enhanced_report,
+            'patient_report': patient_report,
+            'technical_details': {
+                'explanation_quality': enhanced_report['explanations']['quality_metrics'],
+                'uncertainty_level': enhanced_report['explanations']['technical_explanation']['uncertainty_breakdown']['level'],
+                'audit_trail_available': True
+            }
+        }
+
+    def get_explanation_dashboard(self, workflow_id: str) -> Dict:
+        """Get explanation dashboard for a workflow"""
+
+        if not self.transparency_agent:
+            return {'error': 'Transparency modules unavailable'}
+        return self.transparency_agent.generate_explanation_dashboard(workflow_id)
+
+    def get_system_transparency_metrics(self) -> Dict:
+        """Get system-wide transparency metrics"""
+
+        if not self.transparency_agent:
+            return {'error': 'Transparency modules unavailable'}
+
+        qualities = [exp['explanation_quality'] for exp in self.transparency_agent.explanation_history]
+        avg_quality = np.mean(qualities) if qualities else 0.0
+
+        return {
+            'total_explanations_generated': len(self.transparency_agent.explanation_history),
+            'average_explanation_quality': float(avg_quality),
+            'common_uncertainty_patterns': self.transparency_agent._identify_common_patterns(),
+            'explanation_quality_trends': self.transparency_agent._get_quality_trends(),
+            'system_trust_score': self._calculate_system_trust_score()
+        }
+
+    def _calculate_system_trust_score(self) -> float:
+        """Calculate overall system trust score based on transparency metrics"""
+
+        if not self.transparency_agent or not self.transparency_agent.explanation_history:
+            return 0.0
+
+        quality_scores = [exp['explanation_quality'] for exp in self.transparency_agent.explanation_history]
+        avg_quality = float(np.mean(quality_scores)) if quality_scores else 0.0
+        consistency = 1.0 - min(float(np.std(quality_scores)), 0.5) if quality_scores else 0.0
+        good_explanations = sum(1 for q in quality_scores if q > 0.6)
+        coverage = (good_explanations / len(quality_scores)) if quality_scores else 0.0
+
+        trust_score = (avg_quality * 0.5) + (consistency * 0.3) + (coverage * 0.2)
+        return float(trust_score)
+
 
 

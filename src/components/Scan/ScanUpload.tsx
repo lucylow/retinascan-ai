@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Patient, RetinaScan } from '../../types/retina';
+import { Patient, RetinaScan, AnalysisResult } from '../../types/retina';
 import { useRetinaAnalysis } from '../../hooks/useRetinaAnalysis';
 
 interface ScanUploadProps {

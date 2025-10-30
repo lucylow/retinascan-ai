@@ -1,6 +1,7 @@
 import React from 'react';
 import { Patient } from '../../types/retina';
 import { getEducationalContent, getNearbyClinics, getLatestPatientResults } from '../../lib/demoApi';
+import { Link } from 'react-router-dom';
 
 interface PatientPanelProps {
   patient: Patient | null;
@@ -17,6 +18,7 @@ export const PatientPanel: React.FC<PatientPanelProps> = ({ patient, aiSummary }
   const [education, setEducation] = React.useState<string>('');
   const [clinics, setClinics] = React.useState<Array<{ id: string; name: string; address: string; phone: string; website: string }>>([]);
   const [latest, setLatest] = React.useState<{ drGrade: string; confidence: number; requiresReferral: boolean } | null>(null);
+  const [intakeComplete, setIntakeComplete] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     let mounted = true;
@@ -30,6 +32,8 @@ export const PatientPanel: React.FC<PatientPanelProps> = ({ patient, aiSummary }
       setEducation(edu);
       setClinics(near);
       setLatest(res);
+      const raw = localStorage.getItem('patient_intake');
+      setIntakeComplete(Boolean(raw));
     })();
     return () => {
       mounted = false;
@@ -38,6 +42,17 @@ export const PatientPanel: React.FC<PatientPanelProps> = ({ patient, aiSummary }
 
   return (
     <section className="p-6 space-y-6">
+      {!intakeComplete && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-yellow-900">Complete Health Intake</h3>
+              <p className="text-sm text-yellow-900">Help your clinician by completing a brief health intake before your screening.</p>
+            </div>
+            <Link to="/intake" className="bg-yellow-600 text-white px-3 py-2 rounded-md hover:bg-yellow-700">Start</Link>
+          </div>
+        </div>
+      )}
       <div>
         <h2 className="text-xl font-semibold text-gray-900">Your Health Overview</h2>
         <p className="text-gray-700 mt-2">Thank you for using the RetinaScan AI platform!</p>

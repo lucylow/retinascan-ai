@@ -1,3 +1,4 @@
+/* stylelint-disable at-rule-no-unknown */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -263,3 +264,4 @@
   outline: 3px solid #000000 !important;
   outline-offset: 2px !important;
 }
+/* stylelint-enable at-rule-no-unknown */

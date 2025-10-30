@@ -6,7 +6,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 import logging
 from datetime import datetime
 
@@ -15,6 +15,7 @@ from utils.image_processor import ImageProcessor
 from utils.model_manager import model_manager
 from services.prediction_service import PredictionService
 from fastapi.concurrency import run_in_threadpool
+from services.visualization_service import AIVisualizationService
 
 # Configure logging
 logging.basicConfig(
@@ -22,6 +23,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+# Global services
+viz_service: Optional[AIVisualizationService] = None
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -77,6 +80,7 @@ async def startup_event():
     logger.info("Starting RetinaScan AI Backend...")
     logger.info("Loading ML model...")
     
+    global viz_service
     success = model_manager.load_model()
     
     if success:
@@ -84,6 +88,13 @@ async def startup_event():
     else:
         logger.warning("Model loading failed, using fallback")
     
+    # Initialize visualization service with the loaded Keras model
+    try:
+        viz_service = AIVisualizationService(model_manager.model)
+        logger.info("Visualization service initialized")
+    except Exception as e:
+        logger.warning(f"Visualization service initialization failed: {e}")
+
     logger.info("Application startup complete")
 
 
@@ -211,6 +222,95 @@ async def general_exception_handler(request, exc):
             timestamp=datetime.utcnow().isoformat()
         ).dict()
     )
+
+
+# Enhanced endpoints with visualizations
+@app.post("/predict/detailed")
+async def predict_with_visualization(file: UploadFile = File(...)):
+    """
+    Enhanced prediction endpoint returning GradCAM-derived visualizations.
+    """
+    if viz_service is None:
+        raise HTTPException(status_code=503, detail="Visualization service unavailable")
+
+    contents = await file.read()
+    try:
+        # Reuse core prediction flow
+        prediction = await run_in_threadpool(
+            PredictionService.predict_image,
+            file.filename,
+            contents,
+        )
+
+        # Preprocess for model to get the image tensor
+        img_array = await run_in_threadpool(ImageProcessor.preprocess_for_model, contents)
+
+        # Build heatmap and lesion detections
+        heatmap_bgr, _ = viz_service.generate_gradcam_heatmap(
+            img_array, pred_index=prediction["severity_class"]
+        )
+        lesions = viz_service.detect_lesion_regions(heatmap_bgr, threshold=0.5)
+
+        # Confidence chart expects dict[str,float]
+        # Our base response uses class_probabilities as {int: float}
+        class_probs = {f"class_{k}": v for k, v in prediction["class_probabilities"].items()}
+        chart_b64 = viz_service.create_confidence_chart(
+            class_probs,
+            ["No DR", "Mild NPDR", "Moderate NPDR", "Severe NPDR", "PDR"],
+        )
+
+        # Compose overlay figure
+        original_rgb = (img_array[0] * 255).astype("uint8")
+        overlay_b64 = viz_service.create_attention_map_overlay(original_rgb, heatmap_bgr, lesions)
+
+        return JSONResponse(
+            {
+                "success": True,
+                "prediction": {
+                    **prediction,
+                    "class_probabilities": class_probs,
+                },
+                "visualizations": {
+                    "confidence_chart": f"data:image/png;base64,{chart_b64}",
+                    "attention_map": f"data:image/png;base64,{overlay_b64}",
+                    "lesion_count": len(lesions),
+                    "detected_lesions": lesions[:10],
+                },
+                "explainability": {
+                    "method": "GradCAM",
+                    "last_conv_layer": viz_service.last_conv_layer_name,
+                    "note": "Heatmap highlights regions contributing most to prediction.",
+                },
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/analyze/temporal")
+async def analyze_temporal_progression(patient_history: List[Dict]):
+    """Return temporal progression chart based on history records."""
+    if viz_service is None:
+        raise HTTPException(status_code=503, detail="Visualization service unavailable")
+    try:
+        chart_b64 = viz_service.create_temporal_progression_chart(patient_history)
+        return JSONResponse(
+            {
+                "success": True,
+                "progression_chart": f"data:image/png;base64,{chart_b64}",
+                "trend_analysis": {
+                    "progression_detected": bool(
+                        patient_history[-1]["severity_class"] > patient_history[0]["severity_class"]
+                    ),
+                    "total_examinations": len(patient_history),
+                    "current_severity": patient_history[-1]["severity_class"],
+                },
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

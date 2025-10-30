@@ -3,6 +3,7 @@ from flask_cors import CORS
 import logging
 import os
 from datetime import datetime
+import json
 
 # Import custom modules
 from config import Config
@@ -286,6 +287,57 @@ def diagnosis_info():
         "recommendations": Config.RECOMMENDATIONS,
         "description": "Diabetic Retinopathy Severity Scale (0-4)"
     })
+
+# Patient Intake endpoint
+@app.route('/api/intake', methods=['POST'])
+def submit_intake():
+    """Accept patient intake JSON; optionally forward to FHIR if configured."""
+    initialize_ehr_services()
+    try:
+        data = request.get_json(force=True, silent=False)
+        patient_id = data.get('patientId') or data.get('patient_id') or 'unknown'
+        payload = data.get('form') or data
+
+        # Persist a simple audit log locally for demo purposes
+        try:
+            with open('intake_submissions.log', 'a') as f:
+                f.write(json.dumps({
+                    'ts': datetime.utcnow().isoformat(),
+                    'patient_id': patient_id,
+                    'payload': payload
+                }) + "\n")
+        except Exception as e:
+            logger.warning(f"Failed to write intake log: {e}")
+
+        # Forward to FHIR if available
+        forwarded = False
+        if fhir_service and isinstance(payload, dict):
+            try:
+                # Build QuestionnaireResponse
+                qr = {
+                    'resourceType': 'QuestionnaireResponse',
+                    'status': 'completed',
+                    'subject': {'reference': f'Patient/{patient_id}'},
+                    'authored': datetime.utcnow().isoformat(),
+                    'item': [
+                        { 'linkId': 'diabetesType', 'text': 'Diabetes Type', 'answer': [{ 'valueString': payload.get('diabetesType', '') }] },
+                        { 'linkId': 'yearsWithDiabetes', 'text': 'Years with diabetes', 'answer': [{ 'valueInteger': int(payload.get('yearsWithDiabetes') or 0) }] },
+                        { 'linkId': 'medications', 'text': 'Medications', 'answer': [{ 'valueString': payload.get('medications', '') }] },
+                        { 'linkId': 'allergies', 'text': 'Allergies', 'answer': [{ 'valueString': payload.get('allergies', '') }] },
+                        { 'linkId': 'visionChanges', 'text': 'Vision changes', 'answer': [{ 'valueString': payload.get('visionChanges', '') }] },
+                        { 'linkId': 'priorEyeConditions', 'text': 'Prior eye conditions', 'answer': [ { 'valueString': v } for v in (payload.get('priorEyeConditions') or []) ] },
+                    ]
+                }
+                fhir_service.create_resource('QuestionnaireResponse', qr)
+                forwarded = True
+            except Exception as e:
+                logger.warning(f"FHIR forwarding failed for intake: {e}")
+
+        return jsonify({ 'success': True, 'forwarded_to_fhir': forwarded })
+
+    except Exception as e:
+        logger.error(f"Failed to handle intake: {e}")
+        return jsonify({ 'success': False, 'error': 'Failed to submit intake' }), 400
 
 # EHR Integration Endpoints
 @app.route('/api/ehr/patient/<patient_id>', methods=['GET'])

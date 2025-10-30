@@ -25,6 +25,8 @@ Diabetic Retinopathy (DR) is a diabetes complication that affects the eyes. It's
 - **⚡ Real-time Processing**: Fast inference with GPU acceleration support
 - **🖼️ Advanced Image Processing**: CLAHE enhancement, border cropping, quality optimization
 - **📊 Detailed Reports**: Severity scores, confidence levels, and structured clinical recommendations
+- **🏥 EHR Integration**: HL7/FHIR interoperability with Epic, Cerner, and other EHR systems
+- **🔄 Clinical Workflows**: Automated patient validation, referral management, and follow-up scheduling
 - **🌐 Full-Stack Architecture**: Modern React frontend + FastAPI backend + Supabase integration
 - **🚀 Production Ready**: Docker support, health checks, error handling, and monitoring
 - **📱 Beautiful UI**: Responsive design with Tailwind CSS and shadcn/ui components
@@ -62,6 +64,12 @@ Diabetic Retinopathy (DR) is a diabetes complication that affects the eyes. It's
 - **Edge Functions**: Supabase Edge Functions (Deno)
 - **AI Gateway**: Lovable AI (alternative analysis pipeline)
 - **Containerization**: Docker + Docker Compose
+
+### EHR Integration
+- **FHIR R4**: Standard REST API for modern EHR systems
+- **HL7 v2**: MLLP support for legacy EHR systems
+- **SMART on FHIR**: OAuth2-based app launch and authentication
+- **Standard Terminologies**: LOINC, SNOMED CT, ICD-10 compliance
 
 ## 🚀 Quick Start
 
@@ -125,6 +133,44 @@ docker-compose up
 docker build -t retinascan-backend .
 docker run -p 8000:8000 retinascan-backend
 ```
+
+### Option 3: EHR Integration Setup
+
+RetinaScan AI supports seamless integration with EHR systems via HL7/FHIR.
+
+#### 1. Configure Environment Variables
+
+```bash
+# Copy environment template
+cp env.sample .env
+
+# Edit .env and add your EHR credentials
+nano .env
+```
+
+Configure the following variables:
+- `FHIR_BASE_URL`: Your FHIR server endpoint
+- `FHIR_CLIENT_ID`: OAuth2 client ID
+- `FHIR_CLIENT_SECRET`: OAuth2 client secret
+- `FHIR_AUTH_URL`, `FHIR_TOKEN_URL`: OAuth2 endpoints
+- `HL7_HOST`, `HL7_PORT`: For legacy HL7 v2 systems
+
+#### 2. Register SMART on FHIR App
+
+Contact your EHR vendor (Epic, Cerner, etc.) to:
+1. Register your application
+2. Obtain OAuth2 credentials
+3. Configure scopes and redirect URIs
+4. Test in sandbox environment
+
+#### 3. Test Integration
+
+```bash
+# Run integration examples
+python examples/ehr_integration_example.py
+```
+
+For detailed documentation, see [EHR_INTEGRATION_GUIDE.md](EHR_INTEGRATION_GUIDE.md).
 
 ## 📁 Project Structure
 
