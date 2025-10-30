@@ -131,7 +131,14 @@ export const Dashboard: React.FC = () => {
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             {activeTab === 'scan' && (
-              <ScanUpload patient={currentPatient} onScanUpload={handleScanUpload} />
+              <ScanUpload
+                patient={currentPatient}
+                onScanUpload={handleScanUpload}
+                onAnalysisComplete={(res) => {
+                  setCurrentResult(res);
+                  setActiveTab('results');
+                }}
+              />
             )}
             {activeTab === 'results' && (
               <AnalysisResults

@@ -19,8 +19,8 @@ class Config:
     MODEL_PATH = os.getenv('MODEL_PATH', 'models/retina_model.h5')
     IMAGE_SIZE = (224, 224)
     
-    # CORS Configuration
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
+    # CORS Configuration (include Vite default port 5173 by default)
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5173').split(',')
     
     # Diagnosis Configuration
     DIAGNOSIS_LABELS = {

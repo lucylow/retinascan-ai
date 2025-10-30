@@ -5,9 +5,10 @@ import { useRetinaAnalysis } from '../../hooks/useRetinaAnalysis';
 interface ScanUploadProps {
   patient: Patient | null;
   onScanUpload: (scan: RetinaScan) => void;
+  onAnalysisComplete?: (result: AnalysisResult) => void;
 }
 
-export const ScanUpload: React.FC<ScanUploadProps> = ({ patient, onScanUpload }) => {
+export const ScanUpload: React.FC<ScanUploadProps> = ({ patient, onScanUpload, onAnalysisComplete }) => {
   const [selectedEye, setSelectedEye] = useState<'left' | 'right' | 'both'>('left');
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -67,6 +68,9 @@ export const ScanUpload: React.FC<ScanUploadProps> = ({ patient, onScanUpload })
     const result = await analyzeScan(scan);
     // eslint-disable-next-line no-console
     console.log('Analysis result:', result);
+    if (onAnalysisComplete) {
+      onAnalysisComplete(result);
+    }
   };
 
   if (!patient) {
