@@ -8,6 +8,8 @@ import PricingPage from "./pages/PricingPage";
 import ContactPage from "./pages/ContactPage";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
+import RetinaScanPage from "./pages/RetinaScan";
+import AgentsDashboardPage from "./pages/AgentsDashboard";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +21,8 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Landing />} />
             <Route path="/app" element={<Index />} />
+            <Route path="/retina" element={<RetinaScanPage />} />
+            <Route path="/dashboard" element={<AgentsDashboardPage />} />
             <Route path="/features" element={<FeaturesPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/contact" element={<ContactPage />} />

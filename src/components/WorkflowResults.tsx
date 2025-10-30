@@ -1,4 +1,5 @@
 import React from 'react';
+import { ClinicMap } from './ClinicMap';
 
 interface WorkflowResultsProps {
   workflow?: {
@@ -151,6 +152,10 @@ export const WorkflowResults: React.FC<WorkflowResultsProps> = ({ workflow }) =>
               <span>RetinaNet v2.1</span>
             </div>
           </div>
+        </div>
+
+        <div style={{ marginTop: '1.5rem' }}>
+          <ClinicMap />
         </div>
       </div>
     );

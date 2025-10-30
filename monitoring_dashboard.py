@@ -79,6 +79,78 @@ def start_monitoring(orchestrator, host="0.0.0.0", port=5001):
     app.run(host=host, port=port, debug=False)
 
 
+# ---- Clinics API (simple in-memory directory with geo filtering) ----
+# Example starter data; replace with DB/registry integration later
+CLINICS = [
+    {
+        "id": "c1",
+        "name": "City Eye Clinic",
+        "address": "123 Vision St",
+        "phone": "+1 555-123-4567",
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "hours": "Mon-Fri 8:00-17:00",
+        "insuranceAccepted": ["Aetna", "BCBS"],
+        "languagesSpoken": ["English", "Spanish"],
+        "bookingUrl": "https://example.com/book/c1",
+    },
+    {
+        "id": "c2",
+        "name": "Retina Specialists Center",
+        "address": "456 Macula Ave",
+        "phone": "+1 555-222-3344",
+        "latitude": 37.7849,
+        "longitude": -122.4094,
+        "hours": "Mon-Sat 9:00-18:00",
+        "insuranceAccepted": ["Kaiser", "United"],
+        "languagesSpoken": ["English", "Chinese"],
+        "bookingUrl": "https://example.com/book/c2",
+    },
+]
+
+from math import radians, sin, cos, asin, sqrt
+
+
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Calculate the great circle distance between two points in km"""
+    R = 6371.0
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+    c = 2 * asin(sqrt(a))
+    return R * c
+
+
+@app.route("/api/clinics")
+def list_clinics():
+    try:
+        lat = request.args.get("lat", type=float)
+        lng = request.args.get("lng", type=float)
+        radius = request.args.get("radius", default=50.0, type=float)  # km
+        insurance = request.args.get("insurance")
+        language = request.args.get("language")
+
+        results = []
+        for c in CLINICS:
+            if insurance and insurance not in c.get("insuranceAccepted", []):
+                continue
+            if language and language not in c.get("languagesSpoken", []):
+                continue
+
+            distance = None
+            if lat is not None and lng is not None:
+                distance = haversine_km(lat, lng, c["latitude"], c["longitude"])
+                if distance > radius:
+                    continue
+            results.append({**c, "distance_km": round(distance, 2) if distance is not None else None})
+
+        # Sort by distance if available
+        results.sort(key=lambda x: x["distance_km"] if x["distance_km"] is not None else 1e9)
+        return jsonify({"clinics": results})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 # HTML Template (dashboard.html)
 DASHBOARD_HTML = """
 <!DOCTYPE html>
