@@ -61,34 +61,61 @@ export const AIAgentsDashboard: React.FC = () => {
         const res = await fetch('/api/metrics');
         if (res.ok) {
           const text = await res.text();
-          if (text) {
-            const data = JSON.parse(text);
-            setSystemMetrics(data.system_metrics || {});
-            const agentsMapped = mapAgents(data.system_metrics?.agent_performance);
-            setAgents(agentsMapped);
+          if (text && text.trim().length > 0) {
+            try {
+              const data = JSON.parse(text);
+              setSystemMetrics(data.system_metrics || {});
+              const agentsMapped = mapAgents(data.system_metrics?.agent_performance);
+              setAgents(agentsMapped);
+            } catch (_) {
+              // Ignore invalid JSON when endpoint returns HTML/plain text
+            }
           }
         }
 
         const wfRes = await fetch('/api/workflows');
         if (wfRes.ok) {
           const wfText = await wfRes.text();
-          if (wfText) {
-            const wfData = JSON.parse(wfText);
-            const wfStatuses: WorkflowStatus[] = (wfData.workflows || []).slice(-10).map((wf: any) => ({
-              id: wf.workflow_id || 'unknown',
-              status: (wf.status || 'running') as WorkflowStatus['status'],
-              progress: calculateProgress(wf),
-              currentStep: getCurrentStep(wf),
-              startTime: wf.start_time ? new Date(wf.start_time) : new Date(),
-              endTime: wf.end_time ? new Date(wf.end_time) : undefined,
-              result: wf.result,
-              error: wf.error,
-            }));
-            setWorkflows(wfStatuses);
+          if (wfText && wfText.trim().length > 0) {
+            try {
+              const wfData = JSON.parse(wfText);
+              const wfStatuses: WorkflowStatus[] = (wfData.workflows || []).slice(-10).map((wf: any) => ({
+                id: wf.workflow_id || 'unknown',
+                status: (wf.status || 'running') as WorkflowStatus['status'],
+                progress: calculateProgress(wf),
+                currentStep: getCurrentStep(wf),
+                startTime: wf.start_time ? new Date(wf.start_time) : new Date(),
+                endTime: wf.end_time ? new Date(wf.end_time) : undefined,
+                result: wf.result,
+                error: wf.error,
+              }));
+              setWorkflows(wfStatuses);
+            } catch (_) {
+              // Ignore invalid JSON response
+            }
           }
         }
       } catch (e) {
         // API not available - this is expected when backend is not running
+        // Provide lightweight mock data in development to keep the UI informative
+        if (import.meta && (import.meta as any).env && (import.meta as any).env.DEV) {
+          setSystemMetrics((prev: any) =>
+            Object.keys(prev || {}).length > 0
+              ? prev
+              : {
+                  uptime_seconds: 0,
+                  agent_performance: {
+                    intake_agent: { tasks_processed: 0, success_rate: 1, average_processing_time: 0 },
+                    analysis_agent: { tasks_processed: 0, success_rate: 1, average_processing_time: 0 },
+                  },
+                }
+          );
+          setAgents((prev) => (prev.length > 0 ? prev : mapAgents({
+            intake_agent: { tasks_processed: 0, success_rate: 1, average_processing_time: 0 },
+            analysis_agent: { tasks_processed: 0, success_rate: 1, average_processing_time: 0 },
+          })));
+          setWorkflows((prev) => prev);
+        }
       }
     }, 2000);
     return () => clearInterval(interval);
@@ -133,8 +160,23 @@ export const AIAgentsDashboard: React.FC = () => {
       const fd = new FormData();
       fd.append('image', file);
       const res = await fetch('/api/process', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Processing failed');
+      if (!res.ok) {
+        let message = `Request failed with ${res.status}`;
+        try {
+          const errJson = await res.json();
+          if (errJson && errJson.error) message = errJson.error;
+        } catch (_) {
+          // Response not JSON; keep default message
+        }
+        throw new Error(message);
+      }
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch (_) {
+        throw new Error('Invalid JSON response from processing endpoint');
+      }
+      if (!data || data.success === false) throw new Error(data?.error || 'Processing failed');
 
       setWorkflows((prev) =>
         prev.map((wf) =>
