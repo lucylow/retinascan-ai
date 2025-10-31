@@ -40,16 +40,21 @@ fhir_service = None
 hl7_service = None
 workflow_manager = None
 
-@app.before_first_request
 def initialize_model():
     """Initialize the model before first request"""
     global retina_model
-    try:
-        retina_model = RetinaModel()
-        logger.info("Retina model initialized successfully")
-    except Exception as e:
-        logger.error(f"Failed to initialize model: {str(e)}")
-        raise
+    if retina_model is None:
+        try:
+            retina_model = RetinaModel()
+            logger.info("Retina model initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize model: {str(e)}")
+            raise
+
+def ensure_model_initialized():
+    """Ensure model is initialized, called on first request"""
+    if retina_model is None:
+        initialize_model()
 
 def initialize_ehr_services():
     """Initialize EHR integration services"""
@@ -85,6 +90,12 @@ def initialize_ehr_services():
         except Exception as e:
             logger.warning(f"EHR services not initialized: {str(e)}")
             logger.info("Application will continue without EHR integration")
+
+# Request handlers
+@app.before_request
+def before_request():
+    """Ensure model is initialized before handling requests"""
+    ensure_model_initialized()
 
 # Error handlers
 @app.errorhandler(413)
