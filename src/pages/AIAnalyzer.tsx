@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { config } from "@/lib/config";
+import { supabase } from "@/integrations/supabase/client";
 
 type ImageStatus = "pending" | "processing" | "completed" | "error";
 
@@ -56,21 +57,52 @@ export default function AIAnalyzer() {
       setImages([...updated]);
 
       try {
-        const formData = new FormData();
-        // FastAPI endpoint expects field name 'file'
-        formData.append("file", img.file);
+        let data: any;
 
-        const response = await fetch(`${config.api.baseUrl}/api/predict`, {
-          method: "POST",
-          body: formData,
-        });
+        // Try Supabase Edge Function first if configured
+        if (config.supabase.url && config.supabase.anonKey) {
+          const reader = new FileReader();
+          const base64Promise = new Promise<string>((resolve, reject) => {
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+          });
+          reader.readAsDataURL(img.file);
+          const imageData = await base64Promise;
 
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({} as any));
-          throw new Error(err?.detail || err?.error || `Request failed: ${response.status}`);
+          const { data: result, error } = await supabase.functions.invoke('analyze-retina', {
+            body: { image: imageData }
+          });
+
+          if (error) {
+            throw new Error(error.message || 'Supabase function error');
+          }
+
+          if (!result) {
+            throw new Error('No result from analysis service');
+          }
+
+          data = result;
+        }
+        // Fallback to backend API if configured
+        else if (config.api.baseUrl) {
+          const formData = new FormData();
+          formData.append("file", img.file);
+
+          const response = await fetch(`${config.api.baseUrl}/api/predict`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const err = await response.json().catch(() => ({} as any));
+            throw new Error(err?.detail || err?.error || `Request failed: ${response.status}`);
+          }
+
+          data = await response.json();
+        } else {
+          throw new Error('No analysis service configured');
         }
 
-        const data = await response.json();
         updated[i] = { ...updated[i], status: "completed", result: data };
         setCompletedCount((c) => c + 1);
       } catch (e: any) {

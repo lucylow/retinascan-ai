@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { config } from "@/lib/config";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ImageUploadProps {
   onPrediction: (prediction: any) => void;
@@ -49,22 +50,44 @@ export function ImageUpload({ onPrediction, isAnalyzing, setIsAnalyzing }: Image
 
     setIsAnalyzing(true);
     try {
-      // Prefer backend API when available
-      const formData = new FormData();
-      formData.append("image", selectedFile);
+      let data: any;
 
-      const response = await fetch(`${config.api.baseUrl}/api/predict`, {
-        method: "POST",
-        body: formData,
-      });
+      // Try Supabase Edge Function first if configured
+      if (config.supabase.url && config.supabase.anonKey) {
+        const { data: result, error } = await supabase.functions.invoke('analyze-retina', {
+          body: { image: selectedImage }
+        });
 
-      if (!response.ok) {
-        const errJson = await response.json().catch(() => ({}));
-        const message = errJson?.error || `Request failed with ${response.status}`;
-        throw new Error(message);
+        if (error) {
+          throw new Error(error.message || 'Supabase function error');
+        }
+
+        if (!result) {
+          throw new Error('No result from analysis service');
+        }
+
+        data = result;
       }
+      // Fallback to backend API if available
+      else if (config.api.baseUrl) {
+        const formData = new FormData();
+        formData.append("image", selectedFile);
 
-      const data = await response.json();
+        const response = await fetch(`${config.api.baseUrl}/api/predict`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errJson = await response.json().catch(() => ({}));
+          const message = errJson?.error || `Request failed with ${response.status}`;
+          throw new Error(message);
+        }
+
+        data = await response.json();
+      } else {
+        throw new Error('No analysis service configured');
+      }
 
       if (!data || data.success === false) {
         throw new Error(data?.error || "Invalid response from analysis service");

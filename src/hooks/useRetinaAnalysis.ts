@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { RetinaScan, AnalysisResult } from '../types/retina';
 import { config } from '../lib/config';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useRetinaAnalysis = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -18,8 +19,34 @@ export const useRetinaAnalysis = () => {
     }, 500);
 
     try {
-      // If backend API is configured, use it; otherwise fall back to mock
-      if (config.api.baseUrl && scan.image instanceof File) {
+      let data: any;
+
+      // Try Supabase Edge Function first if configured
+      if (config.supabase.url && config.supabase.anonKey && scan.image instanceof File) {
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+        });
+        reader.readAsDataURL(scan.image);
+        const imageData = await base64Promise;
+
+        const { data: result, error } = await supabase.functions.invoke('analyze-retina', {
+          body: { image: imageData }
+        });
+
+        if (error) {
+          throw new Error(error.message || 'Supabase function error');
+        }
+
+        if (!result) {
+          throw new Error('No result from analysis service');
+        }
+
+        data = result;
+      }
+      // Fallback to backend API if configured
+      else if (config.api.baseUrl && scan.image instanceof File) {
         const formData = new FormData();
         formData.append('image', scan.image);
 
@@ -34,8 +61,11 @@ export const useRetinaAnalysis = () => {
           throw new Error(message);
         }
 
-        const data = await response.json();
+        data = await response.json();
+      }
 
+      // Process data from either source
+      if (data) {
         // Map backend response to AnalysisResult
         const severityMap: Record<number, AnalysisResult['severity']> = {
           0: 'none',
