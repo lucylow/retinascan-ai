@@ -3,6 +3,8 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 // https://vitejs.dev/config/
+// Note: TS6310 error may appear in IDE due to read-only tsconfig files on Lovable platform.
+// This does not affect Vite builds, which use SWC for transpilation (not TypeScript compilation).
 export default defineConfig({
   server: {
     port: 8080,
