@@ -9,7 +9,7 @@ export default defineConfig({
     alias: {
       // Correctly resolve the '@' alias using process.cwd()
       // This works in any environment (CommonJS, ES Modules, etc.)
-      "@": path.resolve(process.cwd(), "src"),
+      "@": path.resolve(process.cwd(), "frontend/src"),
     },
   },
   build: {
