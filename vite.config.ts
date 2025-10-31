@@ -10,7 +10,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(process.cwd(), "src"),
+      // Correctly resolve the '@' alias using process.cwd()
+      // This works in any environment (CommonJS, ES Modules, etc.)
+      "@": path.resolve(process.cwd(), "frontend/src"),
     },
   },
   build: {
