@@ -5,6 +5,8 @@ import os
 import numpy as np
 from typing import Dict, Tuple, Optional
 import logging
+import tensorflow as tf
+from tensorflow.keras import layers, models
 from config import Config
 
 # Configure logging
@@ -30,8 +32,6 @@ class ModelManager:
             True if model loaded successfully, False otherwise
         """
         try:
-            import tensorflow as tf
-            
             path = model_path or Config.MODEL_PATH
             
             if not os.path.exists(path):
@@ -62,9 +62,6 @@ class ModelManager:
         Returns:
             Compiled Keras model
         """
-        import tensorflow as tf
-        from tensorflow.keras import layers, models
-        
         logger.info("Building MobileNetV2-based model architecture")
         
         # Load pre-trained MobileNetV2 without top layers
