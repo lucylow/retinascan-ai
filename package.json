@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/build-safe.js",
+    "build:direct": "vite build",
     "typecheck": "node scripts/typecheck-safe.js",
     "typecheck:direct": "tsc --noEmit --skipLibCheck",
     "build:unified": "vite build",
