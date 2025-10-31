@@ -12,6 +12,15 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 8080,
       host: true, // Listen on all addresses for containerized deployments
+      proxy: {
+        // Proxy API requests to backend during development
+        '/api': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path, // Keep /api prefix
+        },
+      },
     },
     plugins: [
       react({

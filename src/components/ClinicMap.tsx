@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
+import { config } from '@/lib/config';
 
 type LatLng = { lat: number; lng: number };
 
@@ -38,7 +39,7 @@ export const ClinicMap: React.FC<ClinicMapProps> = () => {
     const fetchClinics = async () => {
       try {
         const qs = userPosition ? `?lat=${userPosition.lat}&lng=${userPosition.lng}&radius=50` : '';
-        const res = await fetch(`/api/clinics${qs}`);
+        const res = await fetch(`${config.api.baseUrl}/api/clinics${qs}`);
         const data = await res.json();
         setClinics(data.clinics || []);
       } catch (e) {

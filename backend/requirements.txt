@@ -8,5 +8,8 @@ gunicorn==21.2.0
 opencv-python==4.8.1.78
 scikit-learn==1.3.0
 werkzeug==2.3.7
+# Governance Framework Dependencies
+bcrypt==4.1.2
+PyJWT==2.8.0
 
 

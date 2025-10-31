@@ -200,7 +200,7 @@ export class DatasetManager {
     const numGroups = Object.keys(grouped).length;
     const minPerGroup = Math.floor((images.length / numGroups) * 0.1);
 
-    for (const [group, groupImages] of Object.entries(grouped)) {
+    for (const [_group, groupImages] of Object.entries(grouped)) {
       const samples = this.sampleBalanced(groupImages, minPerGroup);
       balancedSplit.push(...samples);
     }

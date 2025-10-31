@@ -11,6 +11,7 @@ import RetinaScanPage from "./pages/RetinaScan";
 import PatientIntakePage from "./pages/PatientIntake";
 import AgentsDashboardPage from "./pages/AgentsDashboard";
 import AIAnalyzer from "./pages/AIAnalyzer";
+import FairnessPage from "./pages/FairnessPage";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ function App() {
             <Route path="/intake" element={<PatientIntakePage />} />
             <Route path="/dashboard" element={<AgentsDashboardPage />} />
             <Route path="/ai-analyzer" element={<AIAnalyzer />} />
+            <Route path="/fairness" element={<FairnessPage />} />
             <Route path="/features" element={<FeaturesPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/contact" element={<ContactPage />} />

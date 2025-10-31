@@ -20,10 +20,17 @@ export default function Layout() {
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
 
+  // Navigation links organized by workflow: Clinical tools first, then marketing
   const links = [
+    // Marketing/Public
     { to: "/", label: "Home" },
+    // Clinical workflow (in order)
+    { to: "/intake", label: "Patient Intake" },
     { to: "/retina", label: "Retina Scan" },
+    { to: "/ai-analyzer", label: "AI Analyzer" },
     { to: "/dashboard", label: "AI Dashboard" },
+    { to: "/fairness", label: "Fairness" },
+    // Marketing
     { to: "/features", label: "Features" },
     { to: "/pricing", label: "Pricing" },
     { to: "/contact", label: "Contact" },

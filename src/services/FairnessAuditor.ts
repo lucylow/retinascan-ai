@@ -453,7 +453,7 @@ export class FairnessAuditor {
    * Generate predictions from model
    */
   private async generatePredictions(
-    model: any,
+    _model: any,
     data: RetinaImageWithDemographics[]
   ): Promise<Array<{ imageId: string; predictedLabel: number; confidence: number }>> {
     // In production, this would call the actual model

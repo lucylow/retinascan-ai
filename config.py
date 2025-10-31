@@ -90,4 +90,17 @@ class Config:
             "note": "Most advanced stage. High risk of severe vision loss. Immediate intervention is mandatory."
         }
     }
+    
+    # Security and privacy configuration
+    SECURITY_CONFIG = {
+        'anonymization_secret': os.getenv('ANONYMIZATION_SECRET', 'change-in-production'),
+        'encryption_key_path': os.getenv('KEY_STORAGE_PATH', './.keys'),
+        'audit_log_path': os.getenv('AUDIT_LOG_PATH', './logs/audit'),
+        'enable_anonymization': os.getenv('ENABLE_ANONYMIZATION', 'True').lower() == 'true',
+        'enable_encryption': os.getenv('ENABLE_ENCRYPTION', 'True').lower() == 'true',
+        'enable_federated_learning': os.getenv('ENABLE_FEDERATED_LEARNING', 'False').lower() == 'true',
+        'jwt_secret': os.getenv('JWT_SECRET_KEY', 'change-in-production'),
+        'jwt_algorithm': 'HS256',
+        'jwt_expiration_hours': 1
+    }
 

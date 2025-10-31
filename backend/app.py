@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import json
 
@@ -16,6 +16,10 @@ from services.fhir_integration import FHIRIntegrationService, FHIRConfig
 from services.hl7_integration import HL7v2Integration, HL7MessageBuilder
 from services.clinical_workflow import ClinicalWorkflowManager
 from services.ehr_config import EHRConfig, DEPLOYMENT_CONFIG
+
+# Import Governance Framework
+from services.governance import AIGovernanceFramework, create_governance_framework
+from services.governance.security_manager import token_required, permission_required, data_access_required
 
 # Initialize logging
 logging.basicConfig(
@@ -40,6 +44,9 @@ fhir_service = None
 hl7_service = None
 workflow_manager = None
 
+# Global Governance Framework
+governance = None
+
 def initialize_model():
     """Initialize the model before first request"""
     global retina_model
@@ -55,6 +62,20 @@ def ensure_model_initialized():
     """Ensure model is initialized, called on first request"""
     if retina_model is None:
         initialize_model()
+
+def initialize_governance():
+    """Initialize Governance Framework for HIPAA/GDPR compliance"""
+    global governance
+    
+    if governance is None:
+        try:
+            governance = create_governance_framework(
+                secret_key=app.config.get('SECRET_KEY')
+            )
+            logger.info("Governance framework initialized successfully")
+        except Exception as e:
+            logger.warning(f"Governance framework not initialized: {str(e)}")
+            logger.info("Application will continue without governance (NOT RECOMMENDED FOR PRODUCTION)")
 
 def initialize_ehr_services():
     """Initialize EHR integration services"""
@@ -96,6 +117,9 @@ def initialize_ehr_services():
 def before_request():
     """Ensure model is initialized before handling requests"""
     ensure_model_initialized()
+    # Initialize governance if not already done
+    if governance is None:
+        initialize_governance()
 
 # Error handlers
 @app.errorhandler(413)
@@ -200,12 +224,18 @@ def predict():
         }), 400
     
     try:
+        # Get user ID and patient ID from request (if authenticated)
+        user_id = getattr(request, 'user', {}).get('user_id', 'anonymous')
+        patient_id = request.form.get('patient_id') or request.headers.get('X-Patient-ID')
+        
         # Process the image
         logger.info(f"Processing image: {image_file.filename}")
+        start_time = datetime.utcnow()
         processed_image = ImageProcessor.preprocess_image(image_file)
         
         # Make prediction
         prediction_result = retina_model.predict(processed_image)
+        processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
         
         # Add metadata
         prediction_result.update({
@@ -213,6 +243,19 @@ def predict():
             "timestamp": datetime.utcnow().isoformat(),
             "filename": image_file.filename
         })
+        
+        # Log model usage for governance (if governance is initialized)
+        if governance:
+            try:
+                governance.log_model_prediction(
+                    user_id=user_id,
+                    patient_id=patient_id,
+                    model_version='1.0.0',  # Would get from model metadata
+                    prediction_result=prediction_result,
+                    processing_time_ms=int(processing_time)
+                )
+            except Exception as e:
+                logger.warning(f"Failed to log model usage to governance: {str(e)}")
         
         logger.info(f"Prediction completed: {prediction_result['diagnosis']} "
                    f"(confidence: {prediction_result['confidence']:.2f})")
@@ -612,9 +655,233 @@ def get_workflow_metrics():
             "error": "Failed to fetch metrics"
         }), 500
 
+# Governance API Endpoints
+@app.route('/api/governance/consent', methods=['POST'])
+@token_required
+def manage_consent():
+    """Manage patient consent (GDPR requirement)"""
+    if not governance:
+        return jsonify({
+            "success": False,
+            "error": "Governance framework not initialized"
+        }), 503
+    
+    try:
+        data = request.get_json()
+        patient_id = data.get('patient_id') or request.user.get('user_id')
+        consent_type = data.get('consent_type', 'data_processing')
+        granted = data.get('granted', True)
+        expiration = data.get('expiration')
+        purpose = data.get('purpose', '')
+        version = data.get('version', '1.0')
+        
+        result = governance.manage_consent(
+            patient_id=patient_id,
+            consent_type=consent_type,
+            granted=granted,
+            expiration=expiration,
+            purpose=purpose,
+            version=version
+        )
+        
+        return jsonify({
+            "success": True,
+            "result": result
+        })
+    except Exception as e:
+        logger.error(f"Error managing consent: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to manage consent"
+        }), 500
+
+@app.route('/api/governance/gdpr-request', methods=['POST'])
+@token_required
+def handle_gdpr_request():
+    """Handle GDPR data subject rights requests"""
+    if not governance:
+        return jsonify({
+            "success": False,
+            "error": "Governance framework not initialized"
+        }), 503
+    
+    try:
+        data = request.get_json()
+        request_type = data.get('request_type')  # access, portability, erasure, rectification
+        patient_id = data.get('patient_id') or request.user.get('user_id')
+        request_details = data.get('details', {})
+        
+        if not request_type:
+            return jsonify({
+                "success": False,
+                "error": "request_type is required (access, portability, erasure, rectification)"
+            }), 400
+        
+        result = governance.handle_gdpr_request(
+            request_type=request_type,
+            patient_id=patient_id,
+            request_details=request_details
+        )
+        
+        return jsonify({
+            "success": True,
+            "result": result
+        })
+    except Exception as e:
+        logger.error(f"Error handling GDPR request: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": f"Failed to handle GDPR request: {str(e)}"
+        }), 500
+
+@app.route('/api/governance/compliance-report', methods=['GET'])
+@token_required
+@permission_required('audit_logs')
+def generate_compliance_report():
+    """Generate compliance reports for audit and regulatory submission"""
+    if not governance:
+        return jsonify({
+            "success": False,
+            "error": "Governance framework not initialized"
+        }), 503
+    
+    try:
+        report_type = request.args.get('type', 'audit')
+        start_date = request.args.get('start_date', (datetime.utcnow() - timedelta(days=30)).isoformat())
+        end_date = request.args.get('end_date', datetime.utcnow().isoformat())
+        
+        filters = {}
+        if request.args.get('user_id'):
+            filters['user_id'] = request.args.get('user_id')
+        if request.args.get('patient_id'):
+            filters['patient_id'] = request.args.get('patient_id')
+        if request.args.get('resource_type'):
+            filters['resource_type'] = request.args.get('resource_type')
+        
+        report = governance.generate_compliance_report(
+            report_type=report_type,
+            start_date=start_date,
+            end_date=end_date,
+            filters=filters
+        )
+        
+        return jsonify({
+            "success": True,
+            "report": report
+        })
+    except Exception as e:
+        logger.error(f"Error generating compliance report: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to generate compliance report"
+        }), 500
+
+@app.route('/api/governance/data-access/<patient_id>', methods=['GET'])
+@token_required
+@data_access_required(data_type='phi', access_level='read')
+def get_patient_data_access_log(patient_id):
+    """Get data access log for a patient (GDPR transparency requirement)"""
+    if not governance:
+        return jsonify({
+            "success": False,
+            "error": "Governance framework not initialized"
+        }), 503
+    
+    try:
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        access_log = governance.audit_logger.generate_data_access_report(
+            patient_id=patient_id,
+            start_date=start_date,
+            end_date=end_date
+        )
+        
+        return jsonify({
+            "success": True,
+            "patient_id": patient_id,
+            "access_log": access_log,
+            "total_accesses": len(access_log)
+        })
+    except Exception as e:
+        logger.error(f"Error getting data access log: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to retrieve access log"
+        }), 500
+
+@app.route('/api/governance/validate-processing', methods=['POST'])
+@token_required
+def validate_data_processing():
+    """Validate data processing for compliance before execution"""
+    if not governance:
+        return jsonify({
+            "success": False,
+            "error": "Governance framework not initialized"
+        }), 503
+    
+    try:
+        data = request.get_json()
+        patient_id = data.get('patient_id')
+        data_type = data.get('data_type', 'phi')
+        purpose = data.get('purpose', 'treatment')
+        access_type = data.get('access_type', 'read')
+        
+        if not patient_id:
+            return jsonify({
+                "success": False,
+                "error": "patient_id is required"
+            }), 400
+        
+        user_id = request.user.get('user_id')
+        
+        validation = governance.validate_data_processing(
+            user_id=user_id,
+            patient_id=patient_id,
+            data_type=data_type,
+            purpose=purpose,
+            access_type=access_type
+        )
+        
+        return jsonify({
+            "success": True,
+            "validation": validation
+        })
+    except Exception as e:
+        logger.error(f"Error validating data processing: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to validate data processing"
+        }), 500
+
+@app.route('/api/governance/status', methods=['GET'])
+def governance_status():
+    """Get governance framework status"""
+    status = {
+        "initialized": governance is not None,
+        "components": {}
+    }
+    
+    if governance:
+        status["components"] = {
+            "audit_logging": True,
+            "security": True,
+            "data_governance": True,
+            "incident_response": True
+        }
+        status["systems"] = list(governance.initialized_systems.keys())
+    
+    return jsonify({
+        "success": True,
+        "status": status
+    })
+
 if __name__ == '__main__':
     # Initialize model before running
     initialize_model()
+    
+    # Initialize governance
+    initialize_governance()
     
     # Run Flask app
     port = int(os.environ.get('PORT', 5000))

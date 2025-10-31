@@ -21,6 +21,14 @@
 - [🚀 Key Features](#-key-features)
 - [🤖 AI Architecture](#-ai-architecture)
 - [🏗️ System Design](#️-system-design)
+- [🔧 Technical Implementation Details](#-technical-implementation-details)
+  - [API Endpoints Specification](#api-endpoints-specification)
+  - [Technology Stack](#technology-stack)
+  - [Security Implementation](#security-implementation)
+  - [Performance Optimizations](#performance-optimizations)
+  - [Deployment Architecture](#deployment-architecture)
+  - [Development Workflow](#development-workflow)
+  - [Monitoring & Observability](#monitoring--observability)
 - [🔬 Model Details](#-model-details)
 - [💻 Installation](#-installation)
 - [🎯 Usage](#-usage)
@@ -86,6 +94,12 @@ RetinaScan AI is an end-to-end artificial intelligence system for automated dete
 - **SMART on FHIR**: Embedded EHR applications
 - **HL7 v2 Support**: Legacy system compatibility
 - **Workflow Automation**: End-to-end clinical pathways
+- **Interoperability**: Multi-vendor, multi-system support with quality assurance
+
+📚 **Clinical Integration Documentation:**
+- [`EHR_INTEGRATION_GUIDE.md`](EHR_INTEGRATION_GUIDE.md) - Complete EHR setup and integration
+- [`INTEROPERABILITY_ASSESSMENT.md`](INTEROPERABILITY_ASSESSMENT.md) - Comprehensive interoperability analysis
+- [`INTEROPERABILITY_IMPLEMENTATION_GUIDE.md`](INTEROPERABILITY_IMPLEMENTATION_GUIDE.md) - Practical implementation guide
 
 ### 🔬 Advanced Model Features
 - **EfficientNet Architecture**: State-of-the-art compound scaling (B3/B4 variants)
@@ -301,6 +315,316 @@ flowchart TD
     style P fill:#e3f2fd
 ```
 
+## 🔧 Technical Implementation Details
+
+### API Endpoints Specification
+
+#### Core Endpoints
+
+**POST `/api/predict`** - Main image prediction endpoint
+- **Content-Type**: `multipart/form-data`
+- **Request Parameters**:
+  - `image` (file, required): Retinal fundus image (PNG, JPG, JPEG, BMP, TIFF)
+  - `patient_id` (string, optional): Patient identifier for EHR integration
+- **Response** (200):
+  ```json
+  {
+    "success": true,
+    "diagnosis": "Moderate Diabetic Retinopathy",
+    "severity": 2,
+    "confidence": 0.87,
+    "class_probabilities": [0.05, 0.08, 0.87, 0.03, 0.02],
+    "recommendation": "Urgent consultation with ophthalmologist recommended...",
+    "quality_metrics": {
+      "sharpness": 0.85,
+      "brightness": 0.72,
+      "contrast": 0.91
+    },
+    "timestamp": "2024-01-15T10:30:00Z",
+    "filename": "retina_image.jpg"
+  }
+  ```
+- **Error Responses**:
+  - `400`: Invalid file type, missing image, or processing error
+  - `413`: File too large (>16MB)
+  - `503`: Model not initialized
+
+**POST `/api/predict/batch`** - Batch processing endpoint
+- **Request**: Multiple `images[]` files (max 10 per batch)
+- **Response**: Array of prediction results with error tracking
+- **Rate Limits**: Configurable via middleware
+
+**GET `/api/health`** - Health check endpoint
+- **Response**:
+  ```json
+  {
+    "status": "healthy",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "model_status": "loaded",
+    "version": "1.0.0"
+  }
+  ```
+
+**GET `/api/model/info`** - Model metadata endpoint
+- **Response**: Model architecture, version, training details, input/output specifications
+
+**GET `/api/metrics`** - System metrics endpoint
+- **Response**: CPU usage, memory statistics, model status
+
+#### EHR Integration Endpoints
+
+**GET `/api/ehr/patient/<patient_id>`** - Fetch patient demographics
+- **Authentication**: JWT token required
+- **Response**: FHIR Patient resource data
+
+**GET `/api/ehr/patient/<patient_id>/conditions`** - Fetch patient conditions
+- **Authentication**: JWT token required
+- **Response**: FHIR Condition resources array
+
+**POST `/api/ehr/submit-results`** - Submit AI results to EHR
+- **Request Body**:
+  ```json
+  {
+    "patient_id": "patient-123",
+    "ai_result": { /* prediction result */ },
+    "image_data": "base64_encoded_image"
+  }
+  ```
+- **Response**: FHIR Observation and DiagnosticReport resource IDs
+
+**POST `/api/ehr/workflow`** - Process complete clinical workflow
+- **Request Body**: Patient ID, image data, workflow configuration
+- **Response**: Workflow ID, audit trail, EHR resource references
+
+#### Governance & Security Endpoints
+
+**POST `/api/governance/consent`** - Manage patient consent (GDPR)
+- **Authentication**: JWT token required
+- **Request Body**:
+  ```json
+  {
+    "patient_id": "patient-123",
+    "consent_type": "data_processing",
+    "granted": true,
+    "expiration": "2025-01-15T00:00:00Z",
+    "purpose": "diabetic_retinopathy_screening",
+    "version": "1.0"
+  }
+  ```
+
+**POST `/api/governance/gdpr-request`** - Handle GDPR data subject rights
+- **Request Types**: `access`, `portability`, `erasure`, `rectification`
+- **Response**: Request ID, processing status, data export (if applicable)
+
+**GET `/api/governance/compliance-report`** - Generate compliance reports
+- **Query Parameters**: `type`, `start_date`, `end_date`, `user_id`, `patient_id`
+- **Response**: Comprehensive audit report for regulatory submission
+
+**GET `/api/governance/data-access/<patient_id>`** - Data access log (GDPR transparency)
+- **Authentication**: JWT token with `audit_logs` permission
+- **Response**: Complete access history for specified patient
+
+### Technology Stack
+
+#### Backend Stack
+- **Framework**: Flask 2.3.3 (RESTful API) / FastAPI (alternative implementation)
+- **Python Version**: 3.9+
+- **Deep Learning**:
+  - TensorFlow 2.13.0 (Keras API)
+  - EfficientNet-B4 / MobileNetV2 architectures
+  - Transfer learning with ImageNet weights
+- **Image Processing**:
+  - OpenCV 4.8.1 (CLAHE, cropping, filtering)
+  - Pillow 10.0.0 (image I/O and basic operations)
+  - NumPy 1.24.3 (array operations)
+- **ML Utilities**:
+  - scikit-learn 1.3.0 (metrics, utilities)
+- **EHR Integration**:
+  - FHIR R4 client (custom implementation)
+  - HL7 v2 message builder
+  - OAuth 2.0 / SMART on FHIR authentication
+- **Security**:
+  - PyJWT 2.8.0 (JWT token generation/validation)
+  - bcrypt 4.1.2 (password hashing)
+  - Custom encryption service for PHI
+- **Server**:
+  - Gunicorn 21.2.0 (production WSGI server)
+  - Flask-CORS 4.0.0 (cross-origin resource sharing)
+  - Werkzeug 2.3.7 (WSGI utilities)
+
+#### Frontend Stack
+- **Framework**: React 18.3.1 with TypeScript 5.2.2
+- **Build Tool**: Vite 5.2.0 (ES2020 target, SWC compiler)
+- **Routing**: React Router DOM 6.30.1
+- **State Management**: TanStack Query 5.90.5 (server state caching)
+- **UI Components**:
+  - Radix UI (accessible component primitives)
+  - Tailwind CSS 3.4.1 (utility-first styling)
+  - Lucide React 0.344.0 (icon library)
+- **Charts**: Recharts 2.13.3 (visualization library)
+- **Maps**: React Google Maps API 2.20.3 (clinic locator)
+- **Backend Integration**: Supabase JS 2.77.0 (edge functions, real-time)
+- **Code Quality**:
+  - TypeScript strict mode
+  - ESLint / Prettier (code formatting)
+  - PostCSS + Autoprefixer (CSS processing)
+
+#### Infrastructure & DevOps
+- **Containerization**: Docker + docker-compose
+- **Cloud Platforms**: 
+  - Supabase (edge functions, database)
+  - Heroku (backend deployment via Procfile)
+- **Monitoring**: Custom health check endpoints, system metrics API
+- **Database**: PostgreSQL 12+ (optional, for EHR integration)
+- **Caching**: Redis 6+ (optional, for performance optimization)
+- **Version Control**: Git with conventional commits
+
+### Security Implementation
+
+#### Authentication & Authorization
+- **JWT-based Authentication**: HS256 algorithm with configurable expiration
+- **Role-Based Access Control (RBAC)**: Permission system for audit logs, data access
+- **Token Management**: Secure token storage, automatic refresh, revocation support
+- **Decorators**: `@token_required`, `@permission_required`, `@data_access_required`
+
+#### Data Protection
+- **Encryption at Rest**: AES-256 encryption for stored PHI
+- **Encryption in Transit**: TLS 1.2+ for all API communications
+- **Data Anonymization**: Configurable anonymization service for research/debugging
+- **Access Logging**: Comprehensive audit trail for all data access (HIPAA/GDPR compliant)
+
+#### Input Validation & Sanitization
+- **File Type Whitelist**: PNG, JPG, JPEG, BMP, TIFF only
+- **File Size Limits**: 16MB maximum upload size
+- **Image Integrity Checks**: Format validation, dimension verification
+- **CORS Configuration**: Configurable allowed origins, credential handling
+
+#### Compliance Frameworks
+- **HIPAA**: PHI encryption, access controls, audit logging, breach response
+- **GDPR**: Consent management, data subject rights, data portability, right to erasure
+- **AI Governance**: Model versioning, prediction logging, bias detection, transparency reporting
+
+### Performance Optimizations
+
+#### Model Inference
+- **Model Loading**: Single initialization at startup (lazy loading fallback)
+- **Inference Caching**: Optional result caching by image hash
+- **GPU Acceleration**: Automatic GPU detection and utilization (CUDA)
+- **Batch Processing**: Efficient batch inference for multiple images
+
+#### Image Processing
+- **Optimized Pipelines**: NumPy vectorized operations, OpenCV optimized algorithms
+- **Memory Management**: Minimal allocation, efficient array operations
+- **Preprocessing Caching**: Reusable preprocessing parameters for similar images
+
+#### API Performance
+- **Async Operations**: Non-blocking I/O for file uploads and processing
+- **Response Compression**: Gzip compression for large payloads
+- **Connection Pooling**: Efficient database connection management
+- **Rate Limiting**: Configurable rate limits per endpoint (future enhancement)
+
+#### Frontend Optimizations
+- **Code Splitting**: Automatic vendor chunking (React, UI libraries, charts)
+- **Lazy Loading**: Route-based code splitting with React.lazy()
+- **Asset Optimization**: Image optimization, minification (production builds)
+- **Caching Strategy**: TanStack Query with stale-while-revalidate pattern
+- **Bundle Analysis**: Build optimization with manual chunk configuration
+
+### Deployment Architecture
+
+#### Development Environment
+```bash
+# Backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python backend/app.py  # Flask development server
+
+# Frontend
+npm install
+npm run dev  # Vite dev server (port 8080)
+```
+
+#### Production Deployment
+
+**Backend (Flask)**
+```bash
+# Using Gunicorn
+gunicorn -w 4 -b 0.0.0.0:5000 backend.app:app
+
+# Environment Variables
+export PORT=5000
+export DEBUG=False
+export MODEL_PATH=/app/models/retina_model.h5
+export JWT_SECRET_KEY=<secure-random-key>
+export FHIR_BASE_URL=<ehr-endpoint>
+```
+
+**Frontend (Static Build)**
+```bash
+npm run build  # Generates optimized dist/ folder
+# Serve via Nginx, CloudFlare, or static hosting service
+```
+
+**Docker Deployment**
+```yaml
+# docker-compose.yml configuration
+services:
+  backend:
+    build: .
+    ports: ["5000:5000"]
+    environment:
+      - MODEL_PATH=/app/models/retina_model.h5
+    volumes:
+      - ./models:/app/models
+  
+  frontend:
+    build: ./frontend
+    ports: ["8080:80"]
+    volumes:
+      - ./dist:/usr/share/nginx/html
+```
+
+#### Scaling Considerations
+- **Horizontal Scaling**: Stateless API design, load balancer compatible
+- **Vertical Scaling**: GPU support for model inference, multi-worker deployment
+- **Database Scaling**: Connection pooling, read replicas for EHR queries
+- **CDN**: Static asset delivery via CDN for global distribution
+
+### Development Workflow
+
+#### Code Quality Standards
+- **Python**: PEP 8 compliance (max-line-length=120), type hints, comprehensive docstrings
+- **TypeScript**: Strict mode enabled, no implicit any, comprehensive type coverage
+- **Testing**: Unit tests (pytest for Python, Jest for TypeScript), integration tests
+- **Linting**: ESLint, Prettier (TypeScript), flake8, black (Python)
+- **Git Workflow**: Feature branches, conventional commits, pull request reviews
+
+#### Build System
+- **Frontend**: Vite with SWC compiler, PostCSS processing, automatic chunk splitting
+- **Backend**: Setuptools/pip for package management, virtual environment isolation
+- **CI/CD**: GitHub Actions (recommended) for automated testing and deployment
+- **Version Management**: Semantic versioning (SemVer) for releases
+
+### Monitoring & Observability
+
+#### Logging
+- **Structured Logging**: JSON-formatted logs with correlation IDs
+- **Log Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
+- **Audit Logs**: Separate audit log for compliance (HIPAA/GDPR requirements)
+- **Log Aggregation**: Centralized logging via file-based or cloud services (future)
+
+#### Metrics Collection
+- **System Metrics**: CPU, memory, disk usage via `/api/metrics` endpoint
+- **Application Metrics**: Request count, response times, error rates
+- **Model Metrics**: Inference latency, confidence distribution, prediction accuracy
+- **Business Metrics**: Daily screening count, severity distribution, intervention rate
+
+#### Health Checks
+- **Liveness Probe**: `/api/health` endpoint for container orchestration
+- **Readiness Probe**: Model loaded status, database connectivity
+- **Startup Probe**: Model initialization, service dependencies
+
 ## 🔬 Model Details
 
 ### Deep Learning Architecture
@@ -449,29 +773,165 @@ services:
 
 ### Configuration
 
+#### Environment Variables
+
+**Backend Configuration** (`.env` file)
+```bash
+# Server Configuration
+HOST=0.0.0.0
+PORT=5000
+DEBUG=False
+SECRET_KEY=<generate-secure-random-key>
+
+# Model Configuration
+MODEL_PATH=models/retina_model_final.h5
+IMAGE_SIZE=224
+NUM_CLASSES=5
+
+# File Upload Limits
+MAX_UPLOAD_SIZE=16777216  # 16MB in bytes
+ALLOWED_EXTENSIONS=png,jpg,jpeg,bmp,tiff
+
+# CORS Configuration
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:8080
+
+# Security Configuration
+JWT_SECRET_KEY=<generate-secure-random-key>
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION_HOURS=1
+ENABLE_ENCRYPTION=True
+ENABLE_ANONYMIZATION=True
+
+# FHIR/EHR Integration
+FHIR_BASE_URL=https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4
+FHIR_CLIENT_ID=<your-client-id>
+FHIR_CLIENT_SECRET=<your-client-secret>
+FHIR_AUTH_URL=<oauth-authorization-endpoint>
+FHIR_TOKEN_URL=<oauth-token-endpoint>
+FHIR_REDIRECT_URI=http://localhost:5000/api/auth/callback
+
+# HL7 Integration
+HL7_HOST=localhost
+HL7_PORT=2575
+HL7_USE_TLS=False
+
+# Database (Optional)
+DATABASE_URL=postgresql://user:password@localhost:5432/retinascan
+
+# Redis (Optional)
+REDIS_URL=redis://localhost:6379
+
+# Governance & Compliance
+AUDIT_LOG_PATH=./logs/audit
+KEY_STORAGE_PATH=./.keys
+ANONYMIZATION_SECRET=<generate-secure-random-key>
+```
+
+**Frontend Configuration** (`.env` or `.env.local`)
+```bash
+# API Configuration
+VITE_API_URL=http://localhost:5000
+VITE_BASE_PATH=/
+
+# Supabase Configuration (for Edge Functions)
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=<your-supabase-anon-key>
+
+# Feature Flags
+VITE_ENABLE_GEMINI_AI=true
+VITE_ENABLE_EHR_INTEGRATION=true
+VITE_ENABLE_HITL_DASHBOARD=true
+```
+
+#### Python Configuration Object
+
 ```python
-# config.py or .env
-AI_MODEL_CONFIG = {
-    'model_path': 'models/retina_model_final.h5',
-    'model_architecture': 'efficientnet_b4',  # or 'mobilenetv2'
-    'confidence_threshold': 0.6,
-    'quality_threshold': 0.7,
-    'emergency_severity': 3,
-    'enable_gradcam': True,
-    'enable_uncertainty': True
-}
+# config.py - Backend configuration structure
+class Config:
+    # Server settings
+    HOST = "0.0.0.0"
+    PORT = 5000
+    DEBUG = False
+    
+    # Model settings
+    MODEL_PATH = "models/retina_model_final.h5"
+    IMAGE_SIZE = (224, 224)
+    NUM_CLASSES = 5
+    
+    # AI Model Configuration
+    AI_MODEL_CONFIG = {
+        'model_architecture': 'efficientnet_b4',  # or 'mobilenetv2'
+        'confidence_threshold': 0.6,
+        'quality_threshold': 0.7,
+        'emergency_severity': 3,
+        'enable_gradcam': True,
+        'enable_uncertainty': True,
+        'monte_carlo_samples': 50,
+        'batch_size': 32
+    }
+    
+    # FHIR Configuration
+    FHIR_CONFIG = {
+        'base_url': os.getenv('FHIR_BASE_URL'),
+        'client_id': os.getenv('FHIR_CLIENT_ID'),
+        'client_secret': os.getenv('FHIR_CLIENT_SECRET'),
+        'auth_url': os.getenv('FHIR_AUTH_URL'),
+        'token_url': os.getenv('FHIR_TOKEN_URL'),
+        'redirect_uri': os.getenv('FHIR_REDIRECT_URI')
+    }
+    
+    # Human-in-the-Loop Configuration
+    HITL_CONFIG = {
+        'auto_approve_confidence': 0.9,
+        'emergency_priority': 10,
+        'timeout_minutes': 30,
+        'intervention_thresholds': {
+            'low_confidence': 0.6,
+            'high_severity': 3,
+            'quality_issues': 0.5
+        }
+    }
+    
+    # Security Configuration
+    SECURITY_CONFIG = {
+        'anonymization_secret': os.getenv('ANONYMIZATION_SECRET'),
+        'encryption_key_path': os.getenv('KEY_STORAGE_PATH', './.keys'),
+        'audit_log_path': os.getenv('AUDIT_LOG_PATH', './logs/audit'),
+        'enable_anonymization': True,
+        'enable_encryption': True,
+        'jwt_secret': os.getenv('JWT_SECRET_KEY'),
+        'jwt_algorithm': 'HS256',
+        'jwt_expiration_hours': 1
+    }
+```
 
-FHIR_CONFIG = {
-    'base_url': os.getenv('FHIR_BASE_URL'),
-    'client_id': os.getenv('FHIR_CLIENT_ID'),
-    'client_secret': os.getenv('FHIR_CLIENT_SECRET')
-}
+#### Vite Configuration (Frontend Build)
 
-HITL_CONFIG = {
-    'auto_approve_confidence': 0.9,
-    'emergency_priority': 10,
-    'timeout_minutes': 30
-}
+```typescript
+// vite.config.ts - Production-optimized configuration
+export default defineConfig({
+  server: {
+    port: 8080,
+    host: true,  // Listen on all addresses for containerized deployments
+  },
+  build: {
+    target: "es2020",
+    outDir: "dist",
+    minify: "esbuild",
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          ui: ["@radix-ui/react-progress", "@radix-ui/react-toast"],
+          charts: ["recharts"],
+          query: ["@tanstack/react-query"],
+          supabase: ["@supabase/supabase-js"],
+        },
+      },
+    },
+  },
+});
 ```
 
 ## 🎯 Usage

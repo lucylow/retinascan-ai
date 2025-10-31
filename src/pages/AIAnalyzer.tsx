@@ -60,7 +60,7 @@ export default function AIAnalyzer() {
         // FastAPI endpoint expects field name 'file'
         formData.append("file", img.file);
 
-        const response = await fetch(`${config.api.baseUrl}/predict`, {
+        const response = await fetch(`${config.api.baseUrl}/api/predict`, {
           method: "POST",
           body: formData,
         });
