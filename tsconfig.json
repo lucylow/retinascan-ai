@@ -23,10 +23,10 @@
     /* Path mapping */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./frontend/src/*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["frontend/src"],
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
 
