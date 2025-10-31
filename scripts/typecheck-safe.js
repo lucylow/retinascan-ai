@@ -18,7 +18,11 @@ const rootDir = join(__dirname, '..');
 try {
   // Read the original tsconfig.json
   const tsconfigPath = join(rootDir, 'tsconfig.json');
-  const tsconfigContent = readFileSync(tsconfigPath, 'utf-8');
+  let tsconfigContent = readFileSync(tsconfigPath, 'utf-8');
+  
+  // Strip comments from tsconfig.json (TypeScript uses a JSON-like format with comments)
+  tsconfigContent = tsconfigContent.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  
   const tsconfig = JSON.parse(tsconfigContent);
   
   // Remove project references to avoid TS6310 error
