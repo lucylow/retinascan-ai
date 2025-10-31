@@ -18,5 +18,15 @@ export default defineConfig({
   build: {
     target: 'es2020',
     sourcemap: false,
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Suppress TS config warnings during build
+        if (warning.code === 'PLUGIN_WARNING') return;
+        warn(warning);
+      },
+    },
+  },
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' },
   },
 });
